@@ -21,19 +21,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class EasyAiService {
 
-    /*private static final String SYSTEM_PROMPT = """
-            如果文档的内容可以帮助你，你可以使用文档内容对用户提出的问题进行回复，同时你需要表现得天生就知道这些内容，
-            不能在回复中体现出你是根据给出的文档内容进行回复的，这点非常重要。
-            
-            当用户提出的问题无法根据文档内容进行回复或者你也不清楚时，回复不知道即可。
-            
-            文档内容如下:
-            {documents}
-            
-            """;*/
-
     private static final String SYSTEM_PROMPT = """
-            你需要分析文档的内容哪些部分可以帮助你对用户提出的问题进行回复，同时你需要表现得天生就知道这些内容，
+            你需要使用文档内容对用户提出的问题进行回复，同时你需要表现得天生就知道这些内容，
             不能在回复中体现出你是根据给出的文档内容进行回复的，这点非常重要。
             
             当用户提出的问题无法根据文档内容进行回复或者你也不清楚时，回复不知道即可。
@@ -42,6 +31,17 @@ public class EasyAiService {
             {documents}
             
             """;
+
+    /*private static final String SYSTEM_PROMPT = """
+            你需要分析文档的内容哪些部分可以帮助你对用户提出的问题进行回复，同时你需要表现得天生就知道这些内容，
+            不能在回复中体现出你是根据给出的文档内容进行回复的，这点非常重要。
+            
+            当用户提出的问题无法根据文档内容进行回复或者你也不清楚时，回复不知道即可。
+            
+            文档内容如下:
+            {documents}
+            
+            """;*/
 
     private static final String KEYWORD_PROMPT = """
             你需要参考之前的对话内容对用户最后提出的问题，提取进行回复可能需要查询知识库的关键词。
