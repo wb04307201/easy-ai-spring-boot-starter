@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: spring_ai_demo
+  ai:
+    zhipuai:
+      api-key: 432156df16b143d0de306258380cba88.MoDsO9pZdQI2MNWh
+    ollama:
+      chat:
+        options:
+          model: llama3
+          temperature: 0.5
+          top-p: 0.2
+          top-k: 2
+          num-g-p-u: 1
+      embedding:
+        options:
+          model: llama3
+      base-url: "http://localhost:11434"
+    vectorstore:
+      chroma:
+        client:
+          host: http://localhost
+          port: 8000
+        store:
+          collection-name: SpringAiCollection
+
+logging:
+  level:
+    root: debug

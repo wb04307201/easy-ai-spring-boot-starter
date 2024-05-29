@@ -5,6 +5,7 @@ import org.springframework.ai.chat.messages.*;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.reader.ExtractedTextFormatter;
@@ -20,15 +21,38 @@ import java.util.stream.Collectors;
 @Slf4j
 public class EasyAiService {
 
-    private final static String SYSTEM_PROMPT = """
-            你需要使用文档内容对用户提出的问题进行回复，同时你需要表现得天生就知道这些内容，
+    /*private static final String SYSTEM_PROMPT = """
+            如果文档的内容可以帮助你，你可以使用文档内容对用户提出的问题进行回复，同时你需要表现得天生就知道这些内容，
             不能在回复中体现出你是根据给出的文档内容进行回复的，这点非常重要。
-                        
+            
             当用户提出的问题无法根据文档内容进行回复或者你也不清楚时，回复不知道即可。
-                    
+            
             文档内容如下:
             {documents}
-                        
+            
+            """;*/
+
+    private static final String SYSTEM_PROMPT = """
+            你需要分析文档的内容哪些部分可以帮助你对用户提出的问题进行回复，同时你需要表现得天生就知道这些内容，
+            不能在回复中体现出你是根据给出的文档内容进行回复的，这点非常重要。
+            
+            当用户提出的问题无法根据文档内容进行回复或者你也不清楚时，回复不知道即可。
+            
+            文档内容如下:
+            {documents}
+            
+            """;
+
+    private static final String KEYWORD_PROMPT = """
+            你需要参考之前的对话内容对用户最后提出的问题，提取进行回复可能需要查询知识库的关键词。
+            
+            直接将关键词内容回复给我，并且每个关键词之间用“，”分隔开。
+            
+            当用户提出的问题无法提取关键词或者你也不清楚时，回复不知道即可。
+            
+            对话内容如下:
+            {documents}
+            
             """;
 
     private final VectorStore vectorStore;
@@ -42,7 +66,6 @@ public class EasyAiService {
         this.tokenTextSplitter = tokenTextSplitter;
         this.textFormatter = textFormatter;
     }
-
 
     /**
      * 从给定的资源文件中提取文本，并将其拆分为文档列表，然后将这些文档保存到向量数据库中。
@@ -67,6 +90,10 @@ public class EasyAiService {
         log.debug("保存向量数据库完成");
     }
 
+    public ChatResponse call(Prompt prompt) {
+        return chatModel.call(prompt);
+    }
+
     /**
      * 与用户进行聊天交互的函数。
      *
@@ -74,16 +101,10 @@ public class EasyAiService {
      * @return ChatResponse 包含聊天响应的对象。
      */
     public ChatResponse chat(Payload payload) {
-        // 执行向量相似性搜索，找到与最后一条消息内容相似的文档列表
-        List<Document> listOfSimilarDocuments = vectorStore.similaritySearch(payload.messages().get(payload.messages().size() - 1).content());
-        log.debug("找到向量数据 " + listOfSimilarDocuments.size());
-        listOfSimilarDocuments.forEach(document -> log.debug("向量数据 {} {}", document.getId(), document.getContent()));
-
-        // 将搜索到的文档内容拼接为字符串，用于系统提示消息
-        String documents = listOfSimilarDocuments.stream().map(Document::getContent).collect(Collectors.joining());
-
-        // 创建一条系统消息，包含搜索到的文档内容
-        Message systemMessage = new SystemPromptTemplate(SYSTEM_PROMPT).createMessage(Map.of("documents", documents));
+        // 提取搜索向量数据库用的关键词
+        log.debug("提取关键词开始");
+        ChatResponse kwRsp = call(new PromptTemplate(KEYWORD_PROMPT).create(Map.of("documents", payload.messages().toString())));
+        log.debug("提取关键词结束 {}", kwRsp.getResult().getOutput().getContent());
 
         // 将输入的消息分类并转换为相应的消息类型
         List<Message> messages = payload.messages().stream().map(message -> switch (message.role()) {
@@ -93,14 +114,27 @@ public class EasyAiService {
             default -> new UserMessage(message.content());
         }).collect(Collectors.toList());
 
-        // 将系统消息添加到消息列表的开头
-        messages.add(0, systemMessage);
+        // 执行向量相似性搜索，找到与最后一条消息内容相似的文档列表
+        List<Document> listOfSimilarDocuments = vectorStore.similaritySearch(kwRsp.getResult().getOutput().getContent());
+        log.debug("找到向量数据 {} 内容 {}", listOfSimilarDocuments.size(), listOfSimilarDocuments);
+        if (!listOfSimilarDocuments.isEmpty()) {
+            // 将搜索到的文档内容拼接为字符串，用于系统提示消息
+            String documents = listOfSimilarDocuments.stream().map(Document::getContent).collect(Collectors.joining());
 
-        // 使用聊天模型处理消息，并生成回复
+            // 创建一条系统消息，包含搜索到的文档内容
+            Message systemMessage = new SystemPromptTemplate(SYSTEM_PROMPT).createMessage(Map.of("documents", documents));
+
+            // 将系统消息添加到消息列表的开头
+            messages.add(0, systemMessage);
+        }
+
+        // 使用聊天模型处理消息列表，并生成最终的回复
         log.debug("组织回答开始");
-        ChatResponse rsp = chatModel.call(new Prompt(messages));
+        ChatResponse rsp = call(new Prompt(messages));
         log.debug("组织回答结束 {}", rsp.getResult().getOutput().getContent());
 
         return rsp;
     }
+
+
 }

@@ -1,7 +1,10 @@
 package cn.wubo.easy.ai.config;
 
+import cn.wubo.easy.ai.core.EasyAiService;
+import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.reader.ExtractedTextFormatter;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
@@ -20,7 +23,7 @@ public class EasyAiConfiguration {
     @Bean
     public TokenTextSplitter tokenTextSplitter(SplitterProperties properties) {
         // 使用配置属性初始化TokenTextSplitter实例
-        return new TokenTextSplitter(properties.getDefaultChunkSize(), properties.getMinChunkSizeChars(), properties.getMaxNumChunks(), properties.getMaxNumChunks(), properties.isKeepSeparator());
+        return new TokenTextSplitter(properties.getDefaultChunkSize(), properties.getMinChunkSizeChars(), properties.getMinChunkLengthToEmbed(), properties.getMaxNumChunks(), properties.isKeepSeparator());
     }
 
     /**
@@ -35,11 +38,15 @@ public class EasyAiConfiguration {
     @Bean
     public ExtractedTextFormatter extractedTextFormatter(ReaderProperties properties) {
         // 使用 Builder 模式根据配置属性构建 ExtractedTextFormatter 实例
-        return ExtractedTextFormatter.builder()
-                .withLeftAlignment(properties.isLeftAlignment()) // 设置左对齐选项
+        return ExtractedTextFormatter.builder().withLeftAlignment(properties.isLeftAlignment()) // 设置左对齐选项
                 .withNumberOfBottomTextLinesToDelete(properties.getNumberOfBottomTextLinesToDelete()) // 设置要删除的底部文本行数
                 .withNumberOfTopTextLinesToDelete(properties.getNumberOfTopTextLinesToDelete()) // 设置要删除的顶部文本行数
                 .withNumberOfTopPagesToSkipBeforeDelete(properties.getNumberOfTopPagesToSkipBeforeDelete()) // 设置在删除前要跳过的顶部页面数
                 .build(); // 构建并返回配置好的 ExtractedTextFormatter 实例
+    }
+
+    @Bean
+    public EasyAiService easyAiService(VectorStore vectorStore, ChatModel chatModel, TokenTextSplitter tokenTextSplitter, ExtractedTextFormatter textFormatter) {
+        return new EasyAiService(vectorStore, chatModel, tokenTextSplitter, textFormatter);
     }
 }
