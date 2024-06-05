@@ -1,12 +1,17 @@
 package cn.wubo.easy.ai.config;
 
 import cn.wubo.easy.ai.core.EasyAiService;
+import cn.wubo.easy.ai.core.Payload;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.reader.ExtractedTextFormatter;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.MediaType;
+import org.springframework.web.servlet.function.RouterFunction;
+import org.springframework.web.servlet.function.RouterFunctions;
+import org.springframework.web.servlet.function.ServerResponse;
 
 @EnableConfigurationProperties({SplitterProperties.class, ReaderProperties.class})
 public class EasyAiConfiguration {
@@ -48,5 +53,15 @@ public class EasyAiConfiguration {
     @Bean
     public EasyAiService easyAiService(VectorStore vectorStore, ChatModel chatModel, TokenTextSplitter tokenTextSplitter, ExtractedTextFormatter textFormatter) {
         return new EasyAiService(vectorStore, chatModel, tokenTextSplitter, textFormatter);
+    }
+
+    @Bean("wb04307201EasyAiRouter")
+    public RouterFunction<ServerResponse> easyAiRouter(EasyAiService easyAiService) {
+        RouterFunctions.Builder builder = RouterFunctions.route();
+        builder.POST("/test/chat", request -> {
+            Payload payload = request.body(Payload.class);
+            return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(easyAiService.chat(payload));
+        });
+        return builder.build();
     }
 }
