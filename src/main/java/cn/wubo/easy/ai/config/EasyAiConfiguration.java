@@ -2,6 +2,7 @@ package cn.wubo.easy.ai.config;
 
 import cn.wubo.easy.ai.core.EasyAiService;
 import cn.wubo.easy.ai.core.Payload;
+import jakarta.servlet.http.Part;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.reader.ExtractedTextFormatter;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
@@ -58,7 +59,22 @@ public class EasyAiConfiguration {
     @Bean("wb04307201EasyAiRouter")
     public RouterFunction<ServerResponse> easyAiRouter(EasyAiService easyAiService) {
         RouterFunctions.Builder builder = RouterFunctions.route();
-        builder.POST("/test/chat", request -> {
+        builder.POST("/easy/ai/chatWithPro", request -> {
+            Payload payload = request.body(Payload.class);
+            return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(easyAiService.chat(payload));
+        });
+        builder.POST("/easy/ai/chat", request -> {
+            Payload payload = request.body(Payload.class);
+            return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(easyAiService.chat(payload));
+        });
+        builder.POST("/easy/ai/upload", request -> {
+            Part part = request.multipartData().getFirst("file");
+            part.write("test.pdf");
+            if(part == null) throw new RuntimeException("!!!!!!!!!!!!");
+
+            part.getInputStream();
+            part.getSubmittedFileName();
+
             Payload payload = request.body(Payload.class);
             return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(easyAiService.chat(payload));
         });
