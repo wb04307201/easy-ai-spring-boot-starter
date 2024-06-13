@@ -10,6 +10,7 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.ServerResponse;
@@ -68,9 +69,11 @@ public class EasyAiConfiguration {
             return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(easyAiService.chat(payload));
         });
         builder.POST("/easy/ai/upload", request -> {
+            MultiValueMap<String, Part> multiValueMap = request.multipartData();
+            easyAiService.saveSource(multiValueMap);
             Part part = request.multipartData().getFirst("file");
+
             part.write("test.pdf");
-            if(part == null) throw new RuntimeException("!!!!!!!!!!!!");
 
             part.getInputStream();
             part.getSubmittedFileName();

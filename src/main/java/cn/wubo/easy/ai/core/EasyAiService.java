@@ -15,6 +15,7 @@ import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.core.io.FileUrlResource;
 import org.springframework.core.io.Resource;
+import org.springframework.util.MultiValueMap;
 
 import java.nio.file.Files;
 import java.util.HashMap;
@@ -55,12 +56,12 @@ public class EasyAiService {
         this.textFormatter = textFormatter;
     }
 
-    public void saveSource(Part part) {
-//        Files.createTempFile(part.getName());
-//        part.getInputStream();
-//        Resource resource = new FileUrlResource(part.getName());
-//        Files.createTempFile();
-//        FileResource fileResource = new FileResource();
+    public void saveSource(MultiValueMap<String, Part> multiValueMap) {
+        /*Files.createTempFile(part.getName());
+        part.getInputStream();
+        Resource resource = new FileUrlResource(part.getName());
+        Files.createTempFile();
+        FileResource fileResource = new FileResource();*/
     }
 
 
