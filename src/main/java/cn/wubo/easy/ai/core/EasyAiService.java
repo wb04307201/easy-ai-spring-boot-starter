@@ -64,7 +64,6 @@ public class EasyAiService {
         FileResource fileResource = new FileResource();*/
     }
 
-
     /**
      * 从给定的资源文件中提取文本，并将其拆分为文档列表，然后将这些文档保存到向量数据库中。
      *
