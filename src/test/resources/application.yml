@@ -7,10 +7,10 @@ spring:
     ollama:
       chat:
         options:
-          model: llama3
+          model: qwen2
       embedding:
         options:
-          model: llama3
+          model: qwen2
       base-url: "http://localhost:11434"
     vectorstore:
       chroma:
