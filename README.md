@@ -32,9 +32,9 @@
 
 ## 第三步 在启动类上加上`@EnableFilePreview`注解
 ```java
-@EnableFilePreview
+@EnableEasyAi
 @SpringBootApplication
-public class FilePreviewDemoApplication {
+public class EasyAiDemoApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(FilePreviewDemoApplication.class, args);

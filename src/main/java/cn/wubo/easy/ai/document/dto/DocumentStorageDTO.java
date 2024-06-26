@@ -1,11 +1,11 @@
-package cn.wubo.easy.ai.document.storage;
+package cn.wubo.easy.ai.document.dto;
 
 import lombok.Data;
 
 import java.util.Date;
 
 @Data
-public class FileStorageDTO {
+public class DocumentStorageDTO {
     private String id;
     /**
      * 原文件名
@@ -23,4 +23,15 @@ public class FileStorageDTO {
      * 创建时间
      */
     private Date createTime;
+    /**
+     * 文件状态
+     */
+    private String state;
+
+    enum State {
+        SUCCESS,
+        FAIL,
+        PROCESSING,
+        FINISH
+    }
 }

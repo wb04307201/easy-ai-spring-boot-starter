@@ -1,13 +1,11 @@
-package cn.wubo.easy.ai.document.vectorStore.impl;
+package cn.wubo.easy.ai.vector_store.impl;
 
-import cn.wubo.easy.ai.document.vectorStore.IVectorStoreService;
+import cn.wubo.easy.ai.vector_store.IVectorStoreService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.reader.ExtractedTextFormatter;
-import org.springframework.ai.reader.tika.TikaDocumentReader;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.VectorStore;
-import org.springframework.core.io.Resource;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,26 +24,20 @@ public class VectorStoreServiceImpl implements IVectorStoreService {
     }
 
     /**
-     * 从给定的资源文件中提取文本，并将其拆分为文档列表，然后将这些文档保存到向量数据库中。
+     * 保存文档列表到向量数据库。
      *
-     * @param fileResource 要处理的资源文件，不能为null。
+     * 此方法用于批量保存一组文档到向量数据库中。在实际操作前，会记录开始保存的日志信息，
+     * 保存操作完成后，会再次记录保存完成的日志信息，以方便问题追踪和性能监控。
+     *
+     * @param documentList 待保存的文档列表，每个文档代表一个向量数据。
      */
     @Override
-    public void saveSource(Resource fileResource) {
-        // 初始化Tika解析器并从文件提取文本
-        TikaDocumentReader tikaDocumentReader = new TikaDocumentReader(fileResource, textFormatter);
-
-        // 将提取的文本拆分为文档列表
-        List<Document> documentList = tokenTextSplitter.apply(tikaDocumentReader.get());
-
-        // 记录拆分后的文档数量
-        log.debug("拆分出数据条数 {}", documentList.size());
-
-        // 开始保存文档列表到向量数据库
+    public void save(List<Document> documentList) {
+        // 记录开始保存文档的日志
         log.debug("保存向量数据库开始");
+        // 将文档列表保存到向量数据库
         vectorStore.accept(documentList);
-
-        // 完成保存向量数据库操作
+        // 记录保存文档完成的日志
         log.debug("保存向量数据库完成");
     }
 
@@ -70,8 +62,18 @@ public class VectorStoreServiceImpl implements IVectorStoreService {
         return listOfSimilarDocuments;
     }
 
+    /**
+     * 删除指定ID列表的向量。
+     *
+     * @param idList 向量的ID列表，这些ID代表了需要被删除的向量。
+     * @return 返回一个Optional<Boolean>对象，其中包含了删除操作的结果。
+     *         如果删除操作成功执行，Optional中的Boolean值为true；
+     *         如果删除操作未能执行（例如，由于某些ID不存在），Optional中的Boolean值为false。
+     * @override 该方法重写了父类或接口中的delete方法，以适应当前类的特定需求。
+     */
     @Override
     public Optional<Boolean> delete(List<String> idList) {
         return vectorStore.delete(idList);
     }
+
 }

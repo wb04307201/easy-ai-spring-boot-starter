@@ -1,7 +1,7 @@
-package cn.wubo.easy.ai.document.storage.impl;
+package cn.wubo.easy.ai.document.impl;
 
-import cn.wubo.easy.ai.document.storage.FileStorageDTO;
-import cn.wubo.easy.ai.document.storage.IFileStorageService;
+import cn.wubo.easy.ai.document.dto.DocumentStorageDTO;
+import cn.wubo.easy.ai.document.IDocumentStorageService;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
@@ -10,13 +10,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class LocalFileStorageServiceImpl implements IFileStorageService {
+public class LocalDocumentStorageServiceImpl implements IDocumentStorageService {
 
     private String basePath = "temp";
 
     @Override
-    public FileStorageDTO save(byte[] bytes, String fileName) {
-        FileStorageDTO dto = new FileStorageDTO();
+    public DocumentStorageDTO save(byte[] bytes, String fileName) {
+        DocumentStorageDTO dto = new DocumentStorageDTO();
         dto.setFileName(fileName);
 
         Path filePath = Paths.get(basePath, fileName);
@@ -33,7 +33,7 @@ public class LocalFileStorageServiceImpl implements IFileStorageService {
     }
 
     @Override
-    public Boolean delete(FileStorageDTO dto) {
+    public Boolean delete(DocumentStorageDTO dto) {
         Path filePath = Paths.get(dto.getFilePath());
         try {
             Files.delete(filePath);
@@ -44,7 +44,7 @@ public class LocalFileStorageServiceImpl implements IFileStorageService {
     }
 
     @Override
-    public Resource getBytes(FileStorageDTO dto) {
+    public Resource getBytes(DocumentStorageDTO dto) {
         return new FileSystemResource(dto.getFilePath());
     }
 

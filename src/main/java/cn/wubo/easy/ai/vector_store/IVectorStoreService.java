@@ -1,14 +1,13 @@
-package cn.wubo.easy.ai.document.vectorStore;
+package cn.wubo.easy.ai.vector_store;
 
 import org.springframework.ai.document.Document;
-import org.springframework.core.io.Resource;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface IVectorStoreService {
 
-    void saveSource(Resource fileResource);
+    void save(List<Document> documentList);
 
     List<Document> similaritySearch(String query);
 
