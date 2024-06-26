@@ -6,7 +6,7 @@ import cn.wubo.easy.ai.record.IDocumentStorageRecord;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MemDocumentRecordImpl implements IDocumentStorageRecord {
+public class MemDocumentStorageRecordImpl implements IDocumentStorageRecord {
 
     private static List<DocumentStorageDTO> documentStorageDTOS = new ArrayList<>();
 
