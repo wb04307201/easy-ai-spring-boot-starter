@@ -1,9 +1,7 @@
 package cn.wubo.easy.ai.record.impl;
 
 import cn.wubo.easy.ai.dto.DocumentContentDTO;
-import cn.wubo.easy.ai.dto.DocumentStorageDTO;
 import cn.wubo.easy.ai.record.IDocumentContentRecord;
-import cn.wubo.easy.ai.record.IDocumentStorageRecord;
 
 import java.util.ArrayList;
 import java.util.List;

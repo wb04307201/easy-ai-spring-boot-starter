@@ -10,13 +10,47 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.ServerResponse;
 
+import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadPoolExecutor;
+
+@EnableAsync
 @EnableConfigurationProperties({SplitterProperties.class, ReaderProperties.class})
 public class EasyAiConfiguration {
+
+    /**
+     * 配置一个名为"easyAiExecutor"的线程池任务执行器。
+     * 这个方法创建并配置了一个ThreadPoolTaskExecutor实例，用于处理EasyAI相关的异步任务。
+     * 它通过设置核心线程数、最大线程数、队列容量、线程空闲时间和线程名前缀来定制线程池的行为。
+     * 此外，还设置了拒绝策略为CallerRunsPolicy，当队列满时，任务将由调用线程执行。
+     *
+     * @return ThreadPoolTaskExecutor 一个配置好的线程池任务执行器。
+     */
+    @Bean(name = "easyAiExecutor")
+    public Executor easyAiExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        // 设置核心线程数为10，这些线程会一直存在，即使没有任务需要执行
+        executor.setCorePoolSize(10);
+        // 设置最大线程数为20，当任务队列满时，线程池会增加线程来处理任务，直到达到这个最大值
+        executor.setMaxPoolSize(20);
+        // 设置任务队列容量为500，当提交的任务数超过核心线程数时，新任务会被放入这个队列等待执行
+        executor.setQueueCapacity(500);
+        // 设置线程的空闲时间，超过这个时间且线程池中线程数量大于核心线程数时，线程会被终止
+        executor.setKeepAliveSeconds(60);
+        // 设置线程名前缀，方便识别线程池中的线程
+        executor.setThreadNamePrefix("EasyAiExecutor-");
+        // 设置拒绝策略为CallerRunsPolicy，当队列满且线程池中的线程数量达到最大值时，由调用者线程执行任务
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        // 初始化线程池，使配置生效
+        executor.initialize();
+        return executor;
+    }
 
     /**
      * 创建并返回一个TokenTextSplitter实例。
