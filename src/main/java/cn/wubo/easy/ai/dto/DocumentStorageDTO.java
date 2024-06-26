@@ -1,4 +1,4 @@
-package cn.wubo.easy.ai.document.dto;
+package cn.wubo.easy.ai.dto;
 
 import lombok.Data;
 
@@ -27,11 +27,4 @@ public class DocumentStorageDTO {
      * 文件状态
      */
     private String state;
-
-    enum State {
-        SUCCESS,
-        FAIL,
-        PROCESSING,
-        FINISH
-    }
 }

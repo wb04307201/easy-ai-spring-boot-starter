@@ -1,7 +1,6 @@
 package cn.wubo.easy.ai.document.impl;
 
 import cn.wubo.easy.ai.document.IDocumentReaderService;
-import cn.wubo.easy.ai.document.dto.DocumentStorageDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.reader.ExtractedTextFormatter;

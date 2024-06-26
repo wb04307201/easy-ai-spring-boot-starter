@@ -1,6 +1,6 @@
 package cn.wubo.easy.ai.document;
 
-import cn.wubo.easy.ai.document.dto.DocumentStorageDTO;
+import cn.wubo.easy.ai.dto.DocumentStorageDTO;
 import org.springframework.core.io.Resource;
 
 public interface IDocumentStorageService {
