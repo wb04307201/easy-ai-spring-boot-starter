@@ -22,7 +22,7 @@ public class DocumentReaderServiceImpl implements IDocumentReaderService {
     }
 
     @Override
-    public List<Document> saveSource(Resource fileResource) {
+    public List<Document> read(Resource fileResource) {
         TikaDocumentReader tikaDocumentReader = new TikaDocumentReader(fileResource, textFormatter);
         List<Document> documentList = tokenTextSplitter.apply(tikaDocumentReader.get());
         log.debug("拆分出数据条数 {}", documentList.size());

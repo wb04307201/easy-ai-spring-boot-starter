@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface IDocumentReaderService {
 
-    List<Document> saveSource(Resource fileResource);
+    List<Document> read(Resource fileResource);
 }

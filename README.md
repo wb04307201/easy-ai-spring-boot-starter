@@ -42,3 +42,12 @@ public class EasyAiDemoApplication {
 
 }
 ```
+
+
+```shell
+docker run -d --name chromadb -p 8000:8000 chromadb/chroma
+
+docker run -d --name cassandra -p 9042:9042 cassandra
+```
+
+上传文件-》存储文件/记录（状态：上传文件）-》根据记录获取resource-》开始拆分文件（状态：拆分中）-》异步拆分文件-》存储拆分记录（状态：拆分结束）-》开始向量存储（状态：向量存储中）-》异步向量存储-》向量存储结束（状态：向量存储完成）

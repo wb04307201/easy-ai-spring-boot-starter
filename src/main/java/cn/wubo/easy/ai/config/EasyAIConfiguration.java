@@ -1,7 +1,13 @@
 package cn.wubo.easy.ai.config;
 
-import cn.wubo.easy.ai.core.EasyAiService;
+import cn.wubo.easy.ai.core.EasyAIService;
 import cn.wubo.easy.ai.core.Payload;
+import cn.wubo.easy.ai.document.IDocumentReaderService;
+import cn.wubo.easy.ai.file.IFileStorageService;
+import cn.wubo.easy.ai.document.impl.DocumentReaderServiceImpl;
+import cn.wubo.easy.ai.file.impl.LocalFileStorageServiceImpl;
+import cn.wubo.easy.ai.vector_store.IVectorStoreService;
+import cn.wubo.easy.ai.vector_store.impl.VectorStoreServiceImpl;
 import jakarta.servlet.http.Part;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.reader.ExtractedTextFormatter;
@@ -21,8 +27,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 
 @EnableAsync
-@EnableConfigurationProperties({SplitterProperties.class, ReaderProperties.class})
-public class EasyAiConfiguration {
+@EnableConfigurationProperties({SplitterProperties.class, ReaderProperties.class, EasyAIProperties.class})
+public class EasyAIConfiguration {
 
     /**
      * 配置一个名为"easyAiExecutor"的线程池任务执行器。
@@ -50,6 +56,11 @@ public class EasyAiConfiguration {
         // 初始化线程池，使配置生效
         executor.initialize();
         return executor;
+    }
+
+    @Bean
+    public IFileStorageService documentStorageService() {
+        return new LocalFileStorageServiceImpl();
     }
 
     /**
@@ -86,13 +97,41 @@ public class EasyAiConfiguration {
                 .build(); // 构建并返回配置好的 ExtractedTextFormatter 实例
     }
 
+    /**
+     * 创建并配置DocumentReaderService bean。
+     * 该方法通过依赖注入的方式，使用TokenTextSplitter和ExtractedTextFormatter来实例化DocumentReaderServiceImpl。
+     * 这种方式允许Spring容器管理对象的生命周期，并负责对象之间的依赖关系。
+     *
+     * @param tokenTextSplitter 用于分割文本的令牌化器，它将文本拆分成更小的单元，以便进行进一步处理。
+     * @param extractedTextFormatter 对提取的文本进行格式化的处理器，它负责将原始文本格式化为适合进一步处理的格式。
+     * @return 返回一个配置好的IDocumentReaderService实例，该实例可以用于读取和处理文档。
+     */
     @Bean
-    public EasyAiService easyAiService(VectorStore vectorStore, ChatModel chatModel, TokenTextSplitter tokenTextSplitter, ExtractedTextFormatter textFormatter) {
-        return new EasyAiService(vectorStore, chatModel, tokenTextSplitter, textFormatter);
+    public IDocumentReaderService doumentReaderService(TokenTextSplitter tokenTextSplitter, ExtractedTextFormatter extractedTextFormatter) {
+        return new DocumentReaderServiceImpl(tokenTextSplitter, extractedTextFormatter);
+    }
+
+    /**
+     * 创建并配置VectorStore服务 bean。
+     *
+     * 本方法通过VectorStore实例化一个VectorStoreServiceImpl对象，并将其作为服务提供者返回。
+     * 这样的设计允许Spring框架管理和注入IVectorStoreService的实现，便于后续的服务调用和依赖注入。
+     *
+     * @param vectorStore Vector存储的配置实例，用于初始化VectorStore服务。
+     * @return IVectorStoreService 的实现，提供向量存储的相关操作。
+     */
+    @Bean
+    public IVectorStoreService vectorStoreService(VectorStore vectorStore){
+        return new VectorStoreServiceImpl(vectorStore);
+    }
+
+    @Bean
+    public EasyAIService easyAiService(VectorStore vectorStore, ChatModel chatModel, TokenTextSplitter tokenTextSplitter, ExtractedTextFormatter textFormatter) {
+        return new EasyAIService(vectorStore, chatModel, tokenTextSplitter, textFormatter);
     }
 
     @Bean("wb04307201EasyAiRouter")
-    public RouterFunction<ServerResponse> easyAiRouter(EasyAiService easyAiService) {
+    public RouterFunction<ServerResponse> easyAiRouter(EasyAIService easyAiService) {
         RouterFunctions.Builder builder = RouterFunctions.route();
         builder.POST("/easy/ai/chatWithPro", request -> {
             Payload payload = request.body(Payload.class);

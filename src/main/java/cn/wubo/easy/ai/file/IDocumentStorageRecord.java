@@ -1,4 +1,4 @@
-package cn.wubo.easy.ai.record;
+package cn.wubo.easy.ai.file;
 
 import cn.wubo.easy.ai.dto.DocumentStorageDTO;
 
