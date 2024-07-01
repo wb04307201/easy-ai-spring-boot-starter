@@ -50,7 +50,6 @@ public class EasyAiService {
         List<Part> parts = multiValueMap.entrySet().stream().flatMap(entry -> entry.getValue().stream()).toList();
         try {
             for (Part part : parts) {
-                part.getInputStream();
                 DocumentStorageDTO documentStorageDTO = new DocumentStorageDTO();
                 documentStorageDTO.setFileName(part.getSubmittedFileName());
                 documentStorageDTO.setFilePath(documentStorageService.save(part.getInputStream(), documentStorageDTO.getFileName()));
