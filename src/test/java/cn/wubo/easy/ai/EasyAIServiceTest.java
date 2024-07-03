@@ -1,6 +1,6 @@
 package cn.wubo.easy.ai;
 
-import cn.wubo.easy.ai.config.EasyAIConfiguration;
+import cn.wubo.easy.ai.config.EasyAiConfiguration;
 import cn.wubo.easy.ai.core.EasyAIService;
 import cn.wubo.easy.ai.core.Payload;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +28,7 @@ import java.util.List;
 
 @Slf4j
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = {RestClientAutoConfiguration.class, SpringAiRetryAutoConfiguration.class, OllamaAutoConfiguration.class, ChromaVectorStoreAutoConfiguration.class, EasyAIConfiguration.class})
+@SpringBootTest(classes = {RestClientAutoConfiguration.class, SpringAiRetryAutoConfiguration.class, OllamaAutoConfiguration.class, ChromaVectorStoreAutoConfiguration.class, EasyAiConfiguration.class})
 class EasyAIServiceTest {
 
     @Autowired

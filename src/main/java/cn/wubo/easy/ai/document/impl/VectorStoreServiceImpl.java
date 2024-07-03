@@ -8,6 +8,8 @@ import cn.wubo.easy.ai.file.IDocumentStorageRecord;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.scheduling.annotation.Async;
 
+import java.util.Date;
+
 public class VectorStoreServiceImpl implements IVectorStoreService {
 
     private final IDocumentStorageRecord documentStorageRecord;
@@ -24,11 +26,13 @@ public class VectorStoreServiceImpl implements IVectorStoreService {
     @Override
     public void save(DocumentStorageDTO documentStorageDTO) {
         documentStorageDTO.setState("30");
+        documentStorageDTO.setUpdateTime(new Date());
         documentStorageDTO = documentStorageRecord.save(documentStorageDTO);
         DocumentContentDTO query = new DocumentContentDTO();
         query.setStorageId(documentStorageDTO.getId());
         vectorStore.accept(documentContentRecord.list(query).stream().map(DocumentContentDTO::getDocument).toList());
         documentStorageDTO.setState("40");
+        documentStorageDTO.setUpdateTime(new Date());
         documentStorageRecord.save(documentStorageDTO);
     }
 }

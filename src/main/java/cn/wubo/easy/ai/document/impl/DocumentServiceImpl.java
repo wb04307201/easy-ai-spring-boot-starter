@@ -12,6 +12,7 @@ import org.springframework.ai.document.Document;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Async;
 
+import java.util.Date;
 import java.util.List;
 
 public class DocumentServiceImpl implements IDocumentService {
@@ -34,6 +35,7 @@ public class DocumentServiceImpl implements IDocumentService {
     @Override
     public void read(DocumentStorageDTO documentStorageDTO) {
         documentStorageDTO.setState("10");
+        documentStorageDTO.setUpdateTime(new Date());
         documentStorageDTO = documentStorageRecord.save(documentStorageDTO);
         Resource resource = documentStorageService.getResource(documentStorageDTO.getFilePath());
         List<Document> documentList = documentReaderService.read(resource);
@@ -44,6 +46,7 @@ public class DocumentServiceImpl implements IDocumentService {
             documentContentRecord.save(documentContentDTO);
         }
         documentStorageDTO.setState("20");
+        documentStorageDTO.setUpdateTime(new Date());
         documentStorageDTO = documentStorageRecord.save(documentStorageDTO);
         vectorStoreService.save(documentStorageDTO);
     }

@@ -1,6 +1,6 @@
 package cn.wubo.easy.ai;
 
-import cn.wubo.easy.ai.config.EasyAIConfiguration;
+import cn.wubo.easy.ai.config.EasyAiConfiguration;
 import org.springframework.context.annotation.Import;
 
 import java.lang.annotation.*;
@@ -8,6 +8,6 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
 @Documented
-@Import({EasyAIConfiguration.class})
-public @interface EnableEasyAI {
+@Import({EasyAiConfiguration.class})
+public @interface EnableEasyAi {
 }

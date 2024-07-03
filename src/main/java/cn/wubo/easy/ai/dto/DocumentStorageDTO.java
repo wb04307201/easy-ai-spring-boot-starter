@@ -12,4 +12,5 @@ public class DocumentStorageDTO {
     private Date createTime;
     /* 00 上传 10 文档拆分中 20 文档拆分完 30 向量存储中 40向量存储完 */
     private String state;
+    private Date updateTime;
 }

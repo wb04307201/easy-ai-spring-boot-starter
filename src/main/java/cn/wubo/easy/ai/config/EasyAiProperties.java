@@ -5,6 +5,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Data
 @ConfigurationProperties(prefix = "spring.ai.easy")
-public class EasyAIProperties {
+public class EasyAiProperties {
     private String documentStorageClass = "cn.wubo.easy.ai.file.impl.LocalDocumentStorageServiceImpl";
 }
