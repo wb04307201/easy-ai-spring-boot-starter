@@ -5,8 +5,8 @@
     <meta name="renderer" content="webkit">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="${contextPath}/file/preview/static/layui/2.9.6/css/layui.css"/>
-    <script type="text/javascript" src="${contextPath}/file/preview/static/layui/2.9.6/layui.js"></script>
+    <link rel="stylesheet" type="text/css" href="${contextPath}/easy/ai/static/layui/2.9.6/css/layui.css"/>
+    <script type="text/javascript" src="${contextPath}/easy/ai/static/layui/2.9.6/layui.js"></script>
     <style>
         body {
             padding: 10px 20px 10px 20px;
@@ -25,17 +25,17 @@
     </div>
     <div class="layui-col-md4">
         <div class="layui-form-item">
-            <label class="layui-form-label">原始文件名</label>
+            <label class="layui-form-label">文件位置</label>
             <div class="layui-input-block">
-                <input type="text" name="originalFilename" placeholder="请输入" class="layui-input" lay-affix="clear">
+                <input type="text" name="filePath" placeholder="请输入" class="layui-input" lay-affix="clear">
             </div>
         </div>
     </div>
     <div class="layui-col-md4">
         <div class="layui-form-item">
-            <label class="layui-form-label">文件位置</label>
+            <label class="layui-form-label">文件状态</label>
             <div class="layui-input-block">
-                <input type="text" name="filePath" placeholder="请输入" class="layui-input" lay-affix="clear">
+                <input type="text" name="state" placeholder="请输入" class="layui-input" lay-affix="clear">
             </div>
         </div>
     </div>
@@ -59,7 +59,6 @@
 <script type="text/html" id="table-templet-operator">
     <div class="layui-clear-space">
         <a class="layui-btn layui-btn-xs" lay-event="delete">删除</a>
-        <a class="layui-btn layui-btn-xs" lay-event="preview">预览</a>
         <a class="layui-btn layui-btn-xs" lay-event="download">下载</a>
     </div>
 </script>
@@ -80,7 +79,7 @@
         // 渲染
         upload.render({
             elem: '#ID-upload-demo-drag', // 绑定多个元素
-            url: '${contextPath}/file/preview/upload', // 此处配置你自己的上传接口即可
+            url: '${contextPath}/easy/ai/upload', // 此处配置你自己的上传接口即可
             accept: 'file', // 普通文件
             done: function (res) {
                 if (res.code === 200)
@@ -99,7 +98,7 @@
                 {field: 'filePath', title: '文件位置', width: 300},
                 {field: 'operator', title: '操作', width: 200, fixed: 'right', templet: '#table-templet-operator'},
             ]],
-            url: '${contextPath}/file/preview/list',
+            url: '${contextPath}/easy/ai/list',
             method: 'post',
             contentType: 'application/json',
             parseData: function (res) { // res 即为原始返回的数据
@@ -130,7 +129,7 @@
 
         function deleteRow(id) {
             layer.confirm('确定要删除么？', {icon: 3}, function (index, layero, that) {
-                fetch("${contextPath}/file/preview/delete?id=" + id)
+                fetch("${contextPath}/easy/ai/delete?id=" + id)
                     .then(response => response.json())
                     .then(res => {
                         if (res.code === 200)
@@ -146,12 +145,8 @@
             });
         }
 
-        function previewRow(id) {
-            window.open("${contextPath}/file/preview?id=" + id);
-        }
-
         function downloadRow(id) {
-            window.open("${contextPath}/file/preview/download?id=" + id);
+            window.open("${contextPath}/easy/ai/download?id=" + id);
         }
     })
 </script>

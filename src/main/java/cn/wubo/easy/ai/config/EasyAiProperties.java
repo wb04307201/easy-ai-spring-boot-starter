@@ -24,4 +24,6 @@ public class EasyAiProperties {
     private String fileStorageServiceClass = "cn.wubo.easy.ai.file.impl.LocalFileStorageServiceImpl";
     private String fileStorageRecordClass = "cn.wubo.easy.ai.file.impl.MemFileStorageRecordImpl";
     private String documentContentRecordClass = "cn.wubo.easy.ai.document.impl.MemDocumentContentRecordImpl";
+    private Boolean enableWeb = Boolean.TRUE;
+    private Boolean enableRest = Boolean.TRUE;
 }
