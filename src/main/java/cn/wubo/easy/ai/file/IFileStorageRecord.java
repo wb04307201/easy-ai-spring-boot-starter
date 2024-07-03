@@ -4,7 +4,7 @@ import cn.wubo.easy.ai.dto.DocumentStorageDTO;
 
 import java.util.List;
 
-public interface IDocumentStorageRecord {
+public interface IFileStorageRecord {
 
     DocumentStorageDTO save(DocumentStorageDTO documentStorageDTO);
 

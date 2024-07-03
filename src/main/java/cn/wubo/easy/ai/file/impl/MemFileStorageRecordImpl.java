@@ -1,14 +1,14 @@
 package cn.wubo.easy.ai.file.impl;
 
 import cn.wubo.easy.ai.dto.DocumentStorageDTO;
-import cn.wubo.easy.ai.file.IDocumentStorageRecord;
+import cn.wubo.easy.ai.file.IFileStorageRecord;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class MemDocumentStorageRecordImpl implements IDocumentStorageRecord {
+public class MemFileStorageRecordImpl implements IFileStorageRecord {
 
     private static List<DocumentStorageDTO> documentStorageDTOS = new ArrayList<>();
 

@@ -1,23 +1,26 @@
 package cn.wubo.easy.ai.config;
 
 import cn.wubo.easy.ai.core.EasyAiService;
-import cn.wubo.easy.ai.core.Payload;
+import cn.wubo.easy.ai.document.IDocumentContentRecord;
 import cn.wubo.easy.ai.document.IDocumentReaderService;
-import cn.wubo.easy.ai.document.IDocumentService;
 import cn.wubo.easy.ai.document.impl.DocumentReaderServiceImpl;
-import cn.wubo.easy.ai.exception.DocumentStorageRuntimeException;
-import cn.wubo.easy.ai.file.IDocumentStorageRecord;
+import cn.wubo.easy.ai.document.impl.MemDocumentContentRecordImpl;
+import cn.wubo.easy.ai.dto.DocumentStorageDTO;
+import cn.wubo.easy.ai.exception.EasyAiRuntimeException;
+import cn.wubo.easy.ai.file.IFileStorageRecord;
 import cn.wubo.easy.ai.file.IFileStorageService;
 import cn.wubo.easy.ai.file.impl.LocalFileStorageServiceImpl;
-import jakarta.servlet.http.Part;
+import cn.wubo.easy.ai.file.impl.MemFileStorageRecordImpl;
+import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.reader.ExtractedTextFormatter;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.ServerResponse;
@@ -65,7 +68,17 @@ public class EasyAiConfiguration {
     }
 
     @Bean
-    public IFileStorageService documentStorageService() {
+    public IDocumentContentRecord documentContentRecord() {
+        return new MemDocumentContentRecordImpl();
+    }
+
+    @Bean
+    public IFileStorageRecord fileStorageRecord() {
+        return new MemFileStorageRecordImpl();
+    }
+
+    @Bean
+    public IFileStorageService fileStorageService() {
         return new LocalFileStorageServiceImpl();
     }
 
@@ -118,36 +131,46 @@ public class EasyAiConfiguration {
     }
 
     @Bean
-    public EasyAiService easyAiService(List<IFileStorageService> fileStorageServiceList, IDocumentStorageRecord documentStorageRecord, IDocumentService documentService) {
-        IFileStorageService fileStorageService = fileStorageServiceList.stream().filter(obj -> obj.getClass().getName().equals(properties.getDocumentStorageClass())).findAny().orElseThrow(() -> new DocumentStorageRuntimeException(String.format("未找到%s对应的bean，无法加载IFileStorageService！", properties.getDocumentStorageClass())));
+    public EasyAiService easyAiService(List<IFileStorageService> fileStorageServiceList, List<IFileStorageRecord> fileStorageRecordList, IDocumentReaderService documentReaderService, List<IDocumentContentRecord> documentContentRecordList, VectorStore vectorStore, ChatModel chatModel) {
+        IFileStorageService fileStorageService = fileStorageServiceList.stream()
+                .filter(obj -> obj.getClass().getName().equals(properties.getFileStorageServiceClass()))
+                .findAny()
+                .orElseThrow(() -> new EasyAiRuntimeException(String.format("未找到%s对应的bean，无法加载IFileStorageService！", properties.getFileStorageServiceClass())));
         fileStorageService.init();
 
-        return new EasyAiService(fileStorageService, documentStorageRecord, documentService);
+        IFileStorageRecord fileStorageRecord = fileStorageRecordList.stream()
+                .filter(obj -> obj.getClass().getName().equals(properties.getFileStorageRecordClass()))
+                .findAny()
+                .orElseThrow(() -> new EasyAiRuntimeException(String.format("未找到%s对应的bean，无法加载IFileStorageRecord！", properties.getFileStorageRecordClass())));
+        fileStorageRecord.init();
+
+        IDocumentContentRecord documentContentRecord = documentContentRecordList.stream()
+                .filter(obj -> obj.getClass().getName().equals(properties.getDocumentContentRecordClass()))
+                .findAny()
+                .orElseThrow(() -> new EasyAiRuntimeException(String.format("未找到%s对应的bean，无法加载IDocumentContentRecord！", properties.getDocumentContentRecordClass())));
+        documentContentRecord.init();
+
+        return new EasyAiService(fileStorageService, fileStorageRecord, documentReaderService, documentContentRecord, vectorStore, chatModel);
     }
 
     @Bean("wb04307201EasyAiRouter")
     public RouterFunction<ServerResponse> easyAiRouter(EasyAiService easyAiService) {
         RouterFunctions.Builder builder = RouterFunctions.route();
-        builder.POST("/easy/ai/chatWithPro", request -> {
-            Payload payload = request.body(Payload.class);
-            return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(easyAiService.chat(payload));
+        builder.POST("/easy/ai/chatWithDocument", request -> {
+            Prompt prompt = request.body(Prompt.class);
+            return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(easyAiService.chatWithDocument(prompt, properties.getSystemPromptTemplate()));
         });
         builder.POST("/easy/ai/chat", request -> {
-            Payload payload = request.body(Payload.class);
-            return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(easyAiService.chat(payload));
+            Prompt prompt = request.body(Prompt.class);
+            return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(easyAiService.chat(prompt));
         });
         builder.POST("/easy/ai/upload", request -> {
-            MultiValueMap<String, Part> multiValueMap = request.multipartData();
-            easyAiService.saveSource(multiValueMap);
-            Part part = request.multipartData().getFirst("file");
-
-            part.write("test.pdf");
-
-            part.getInputStream();
-            part.getSubmittedFileName();
-
-            Payload payload = request.body(Payload.class);
-            return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(easyAiService.chat(payload));
+            List<DocumentStorageDTO> documentStorageDTOS = easyAiService.upload(request.multipartData());
+            for (DocumentStorageDTO documentStorageDTO : documentStorageDTOS) {
+                documentStorageDTO = easyAiService.read(documentStorageDTO);
+                documentStorageDTO = easyAiService.save(documentStorageDTO);
+            }
+            return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(documentStorageDTOS);
         });
         return builder.build();
     }

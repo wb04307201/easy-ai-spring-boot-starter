@@ -1,7 +1,7 @@
 package cn.wubo.easy.ai.file.impl;
 
+import cn.wubo.easy.ai.exception.EasyAiRuntimeException;
 import cn.wubo.easy.ai.file.IFileStorageService;
-import cn.wubo.easy.ai.exception.DocumentStorageRuntimeException;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
@@ -25,7 +25,7 @@ public class LocalFileStorageServiceImpl implements IFileStorageService {
             Files.copy(is, filePath);
             return filePath.toString();
         } catch (IOException e) {
-            throw new DocumentStorageRuntimeException(e.getMessage(), e);
+            throw new EasyAiRuntimeException(e.getMessage(), e);
         }
     }
 
@@ -35,7 +35,7 @@ public class LocalFileStorageServiceImpl implements IFileStorageService {
         try {
             Files.delete(filePath);
         } catch (IOException e) {
-            throw new DocumentStorageRuntimeException(e.getMessage(), e);
+            throw new EasyAiRuntimeException(e.getMessage(), e);
         }
         return true;
     }

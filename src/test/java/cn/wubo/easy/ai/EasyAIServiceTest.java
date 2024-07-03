@@ -1,8 +1,7 @@
 package cn.wubo.easy.ai;
 
 import cn.wubo.easy.ai.config.EasyAiConfiguration;
-import cn.wubo.easy.ai.core.EasyAIService;
-import cn.wubo.easy.ai.core.Payload;
+import cn.wubo.easy.ai.core.EasyAiService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
@@ -17,10 +16,9 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.web.client.RestClientAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
@@ -28,6 +26,7 @@ import java.util.List;
 
 @Slf4j
 @RunWith(SpringRunner.class)
+@SpringBootConfiguration
 @SpringBootTest(classes = {RestClientAutoConfiguration.class, SpringAiRetryAutoConfiguration.class, OllamaAutoConfiguration.class, ChromaVectorStoreAutoConfiguration.class, EasyAiConfiguration.class})
 class EasyAIServiceTest {
 
@@ -35,7 +34,7 @@ class EasyAIServiceTest {
     ChatModel chatModel;
 
     @Autowired
-    EasyAIService easyAiService;
+    EasyAiService easyAiService;
 
     @Autowired
     VectorStore vectorStore;
@@ -50,14 +49,8 @@ class EasyAIServiceTest {
 
     @Test
     void testService() {
-        ChatResponse chatResponse = easyAiService.chat(new Payload(List.of(new Payload.Message(Payload.Role.USER, "hello?"))));
+        ChatResponse chatResponse = easyAiService.chat(new Prompt(List.of(new UserMessage("hello?"))));
         System.out.println(chatResponse.getResult().getOutput());
-    }
-
-    @Test
-    void testVectorStore() {
-        Resource fileResource = new FileSystemResource("test.pdf");
-        easyAiService.saveSource(fileResource);
     }
 
     @Test
