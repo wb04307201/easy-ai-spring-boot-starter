@@ -26,7 +26,6 @@ import java.util.List;
 
 @Slf4j
 @RunWith(SpringRunner.class)
-@SpringBootConfiguration
 @SpringBootTest(classes = {RestClientAutoConfiguration.class, SpringAiRetryAutoConfiguration.class, OllamaAutoConfiguration.class, ChromaVectorStoreAutoConfiguration.class, EasyAiConfiguration.class})
 class EasyAIServiceTest {
 
@@ -38,14 +37,6 @@ class EasyAIServiceTest {
 
     @Autowired
     VectorStore vectorStore;
-
-    @Test
-    void testCall() {
-        System.out.println(chatModel.call("hello?"));
-        List<Message> messages = new ArrayList<>();
-        messages.add(new UserMessage("hello?"));
-        System.out.println(chatModel.call(new Prompt(messages)));
-    }
 
     @Test
     void testService() {
