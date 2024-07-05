@@ -39,9 +39,9 @@ class EasyAIServiceTest {
     VectorStore vectorStore;
 
     @Test
-    void testService() {
+    void testEasyAiService() {
         ChatResponse chatResponse = easyAiService.chat(new Prompt(List.of(new UserMessage("hello?"))));
-        System.out.println(chatResponse.getResult().getOutput());
+        log.debug(chatResponse.getResult().getOutput().toString());
     }
 
     @Test

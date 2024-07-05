@@ -46,6 +46,15 @@ public class LocalFileStorageServiceImpl implements IFileStorageService {
     }
 
     @Override
+    public byte[] getBytes(String path) {
+        try {
+            return Files.readAllBytes(Paths.get(path));
+        } catch (IOException e) {
+            throw new EasyAiRuntimeException(e.getMessage(), e);
+        }
+    }
+
+    @Override
     public void init() {
 
     }

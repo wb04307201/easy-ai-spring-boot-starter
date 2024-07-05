@@ -12,5 +12,7 @@ public interface IFileStorageService {
 
     Resource getResource(String path);
 
+    byte[] getBytes(String path);
+
     void init();
 }

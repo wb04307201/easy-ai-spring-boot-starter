@@ -5,7 +5,7 @@ import cn.wubo.easy.ai.document.IDocumentContentRecord;
 import cn.wubo.easy.ai.document.IDocumentReaderService;
 import cn.wubo.easy.ai.document.impl.DocumentReaderServiceImpl;
 import cn.wubo.easy.ai.document.impl.MemDocumentContentRecordImpl;
-import cn.wubo.easy.ai.dto.DocumentStorageDTO;
+import cn.wubo.easy.ai.dto.FileStorageDTO;
 import cn.wubo.easy.ai.exception.EasyAiRuntimeException;
 import cn.wubo.easy.ai.file.IFileStorageRecord;
 import cn.wubo.easy.ai.file.IFileStorageService;
@@ -181,12 +181,12 @@ public class EasyAiConfiguration {
                 return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(easyAiService.chat(prompt));
             });
             builder.POST("/easy/ai/upload", request -> {
-                List<DocumentStorageDTO> documentStorageDTOS = easyAiService.upload(request.multipartData());
-                for (DocumentStorageDTO documentStorageDTO : documentStorageDTOS) {
-                    documentStorageDTO = easyAiService.read(documentStorageDTO);
-                    documentStorageDTO = easyAiService.save(documentStorageDTO);
+                List<FileStorageDTO> fileStorageDTOS = easyAiService.upload(request.multipartData());
+                for (FileStorageDTO fileStorageDTO : fileStorageDTOS) {
+                    fileStorageDTO = easyAiService.read(fileStorageDTO);
+                    fileStorageDTO = easyAiService.save(fileStorageDTO);
                 }
-                return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(documentStorageDTOS);
+                return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(fileStorageDTOS);
             });
         }
         return builder.build();

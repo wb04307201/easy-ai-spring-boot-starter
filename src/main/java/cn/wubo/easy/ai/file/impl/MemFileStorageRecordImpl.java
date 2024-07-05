@@ -1,47 +1,51 @@
 package cn.wubo.easy.ai.file.impl;
 
-import cn.wubo.easy.ai.dto.DocumentStorageDTO;
+import cn.wubo.easy.ai.dto.FileStorageDTO;
+import cn.wubo.easy.ai.exception.EasyAiRuntimeException;
 import cn.wubo.easy.ai.file.IFileStorageRecord;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class MemFileStorageRecordImpl implements IFileStorageRecord {
 
-    private static List<DocumentStorageDTO> documentStorageDTOS = new ArrayList<>();
+    private static List<FileStorageDTO> fileStorageDTOS = new ArrayList<>();
 
     @Override
-    public DocumentStorageDTO save(DocumentStorageDTO documentStorageDTO) {
-        if (StringUtils.hasLength(documentStorageDTO.getId())) {
-            documentStorageDTOS.stream().filter(e -> e.getId().equals(documentStorageDTO.getId())).findAny().ifPresent(e -> e = documentStorageDTO);
+    public FileStorageDTO save(FileStorageDTO fileStorageDTO) {
+        if (StringUtils.hasLength(fileStorageDTO.getId())) {
+            fileStorageDTOS.stream().filter(e -> e.getId().equals(fileStorageDTO.getId())).findAny().ifPresent(e -> e = fileStorageDTO);
         } else {
-            documentStorageDTO.setId(UUID.randomUUID().toString());
-            documentStorageDTOS.add(documentStorageDTO);
+            fileStorageDTO.setId(UUID.randomUUID().toString());
+            fileStorageDTOS.add(fileStorageDTO);
         }
-        return documentStorageDTO;
+        return fileStorageDTO;
     }
 
     @Override
-    public List<DocumentStorageDTO> list(DocumentStorageDTO documentStorageDTO) {
+    public List<FileStorageDTO> list(FileStorageDTO fileStorageDTO) {
         // @formatter:off
-        return documentStorageDTOS.stream()
-                .filter(e -> !StringUtils.hasLength(documentStorageDTO.getId()) || e.getId().equals(documentStorageDTO.getId())).
-                filter(e -> !StringUtils.hasLength(documentStorageDTO.getFileName()) || e.getFileName().contains(documentStorageDTO.getFileName()))
-                .filter(e -> !StringUtils.hasLength(documentStorageDTO.getFilePath()) || e.getFilePath().contains(documentStorageDTO.getFilePath()))
+        return fileStorageDTOS.stream()
+                .filter(e -> !StringUtils.hasLength(fileStorageDTO.getId()) || e.getId().equals(fileStorageDTO.getId())).
+                filter(e -> !StringUtils.hasLength(fileStorageDTO.getFileName()) || e.getFileName().contains(fileStorageDTO.getFileName()))
+                .filter(e -> !StringUtils.hasLength(fileStorageDTO.getFilePath()) || e.getFilePath().contains(fileStorageDTO.getFilePath()))
                 .toList();
         // @formatter:on
     }
 
     @Override
-    public DocumentStorageDTO findById(String id) {
-        return null;
+    public FileStorageDTO findById(String id) {
+        Optional<FileStorageDTO> optionalFileInfo = fileStorageDTOS.stream().filter(e -> e.getId().equals(id)).findAny();
+        if (optionalFileInfo.isPresent()) return optionalFileInfo.get();
+        else throw new EasyAiRuntimeException("文件记录未找到!");
     }
 
     @Override
-    public Boolean delete(DocumentStorageDTO documentStorageDTO) {
-        return null;
+    public Boolean delete(FileStorageDTO fileStorageDTO) {
+        return fileStorageDTOS.removeAll(list(fileStorageDTO));
     }
 
     @Override

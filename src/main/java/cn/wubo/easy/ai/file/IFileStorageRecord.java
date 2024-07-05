@@ -1,18 +1,18 @@
 package cn.wubo.easy.ai.file;
 
-import cn.wubo.easy.ai.dto.DocumentStorageDTO;
+import cn.wubo.easy.ai.dto.FileStorageDTO;
 
 import java.util.List;
 
 public interface IFileStorageRecord {
 
-    DocumentStorageDTO save(DocumentStorageDTO documentStorageDTO);
+    FileStorageDTO save(FileStorageDTO fileStorageDTO);
 
-    List<DocumentStorageDTO> list(DocumentStorageDTO documentStorageDTO);
+    List<FileStorageDTO> list(FileStorageDTO fileStorageDTO);
 
-    DocumentStorageDTO findById(String id);
+    FileStorageDTO findById(String id);
 
-    Boolean delete(DocumentStorageDTO documentStorageDTO);
+    Boolean delete(FileStorageDTO fileStorageDTO);
 
     void init();
 }

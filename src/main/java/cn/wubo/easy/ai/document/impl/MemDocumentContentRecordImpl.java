@@ -1,11 +1,13 @@
 package cn.wubo.easy.ai.document.impl;
 
-import cn.wubo.easy.ai.dto.DocumentContentDTO;
 import cn.wubo.easy.ai.document.IDocumentContentRecord;
+import cn.wubo.easy.ai.dto.DocumentContentDTO;
+import cn.wubo.easy.ai.exception.EasyAiRuntimeException;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class MemDocumentContentRecordImpl implements IDocumentContentRecord {
@@ -35,12 +37,14 @@ public class MemDocumentContentRecordImpl implements IDocumentContentRecord {
 
     @Override
     public DocumentContentDTO findById(String id) {
-        return null;
+        Optional<DocumentContentDTO> optionalFileInfo = documentContentDTOS.stream().filter(e -> e.getId().equals(id)).findAny();
+        if (optionalFileInfo.isPresent()) return optionalFileInfo.get();
+        else throw new EasyAiRuntimeException("文件记录未找到!");
     }
 
     @Override
     public Boolean delete(DocumentContentDTO documentContentDTO) {
-        return null;
+        return documentContentDTOS.removeAll(list(documentContentDTO));
     }
 
     @Override

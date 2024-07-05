@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.Date;
 
 @Data
-public class DocumentStorageDTO {
+public class FileStorageDTO {
     private String id;
     private String fileName;
     private String filePath;

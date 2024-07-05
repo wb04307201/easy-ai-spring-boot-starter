@@ -118,9 +118,6 @@
                 case 'delete':
                     deleteRow(data.id)
                     break;
-                case 'preview':
-                    previewRow(data.id)
-                    break;
                 case 'download':
                     downloadRow(data.id)
                     break;
