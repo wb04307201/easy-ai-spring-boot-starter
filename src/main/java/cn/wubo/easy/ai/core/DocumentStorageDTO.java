@@ -1,4 +1,4 @@
-package cn.wubo.easy.ai.dto;
+package cn.wubo.easy.ai.core;
 
 import lombok.Data;
 import org.springframework.ai.document.Document;
@@ -7,7 +7,7 @@ import java.util.Date;
 import java.util.List;
 
 @Data
-public class FileStorageDTO {
+public class DocumentStorageDTO {
     private String id;
     private String fileName;
     private String filePath;

@@ -3,12 +3,12 @@ package cn.wubo.easy.ai.config;
 import cn.wubo.easy.ai.core.EasyAiService;
 import cn.wubo.easy.ai.document.IDocumentReaderService;
 import cn.wubo.easy.ai.document.impl.DocumentReaderServiceImpl;
-import cn.wubo.easy.ai.dto.FileStorageDTO;
+import cn.wubo.easy.ai.core.DocumentStorageDTO;
 import cn.wubo.easy.ai.exception.EasyAiRuntimeException;
-import cn.wubo.easy.ai.file.IFileStorageRecord;
-import cn.wubo.easy.ai.file.IFileStorageService;
-import cn.wubo.easy.ai.file.impl.LocalFileStorageServiceImpl;
-import cn.wubo.easy.ai.file.impl.MemFileStorageRecordImpl;
+import cn.wubo.easy.ai.document.IDocumentStorageRecord;
+import cn.wubo.easy.ai.document.IDocumentStorageService;
+import cn.wubo.easy.ai.document.impl.LocalDocumentStorageServiceImpl;
+import cn.wubo.easy.ai.document.impl.MemDocumentStorageRecordImpl;
 import cn.wubo.easy.ai.utils.PageUtils;
 import jakarta.servlet.http.Part;
 import org.springframework.ai.chat.model.ChatModel;
@@ -71,13 +71,13 @@ public class EasyAiConfiguration {
     }
 
     @Bean
-    public IFileStorageRecord fileStorageRecord() {
-        return new MemFileStorageRecordImpl();
+    public IDocumentStorageRecord fileStorageRecord() {
+        return new MemDocumentStorageRecordImpl();
     }
 
     @Bean
-    public IFileStorageService fileStorageService() {
-        return new LocalFileStorageServiceImpl();
+    public IDocumentStorageService fileStorageService() {
+        return new LocalDocumentStorageServiceImpl();
     }
 
     /**
@@ -129,15 +129,15 @@ public class EasyAiConfiguration {
     }
 
     @Bean
-    public EasyAiService easyAiService(List<IFileStorageService> fileStorageServiceList, List<IFileStorageRecord> fileStorageRecordList, IDocumentReaderService documentReaderService, VectorStore vectorStore, ChatModel chatModel) {
+    public EasyAiService easyAiService(List<IDocumentStorageService> fileStorageServiceList, List<IDocumentStorageRecord> fileStorageRecordList, IDocumentReaderService documentReaderService, VectorStore vectorStore, ChatModel chatModel) {
         // @formatter:off
-        IFileStorageService fileStorageService = fileStorageServiceList.stream()
+        IDocumentStorageService fileStorageService = fileStorageServiceList.stream()
                 .filter(obj -> obj.getClass().getName().equals(properties.getFileStorageServiceClass()))
                 .findAny()
                 .orElseThrow(() -> new EasyAiRuntimeException(String.format("未找到%s对应的bean，无法加载IFileStorageService！", properties.getFileStorageServiceClass())));
         fileStorageService.init();
 
-        IFileStorageRecord fileStorageRecord = fileStorageRecordList.stream()
+        IDocumentStorageRecord fileStorageRecord = fileStorageRecordList.stream()
                 .filter(obj -> obj.getClass().getName().equals(properties.getFileStorageRecordClass()))
                 .findAny()
                 .orElseThrow(() -> new EasyAiRuntimeException(String.format("未找到%s对应的bean，无法加载IFileStorageRecord！", properties.getFileStorageRecordClass())));
@@ -170,10 +170,10 @@ public class EasyAiConfiguration {
             });
             builder.POST("/easy/ai/upload", request -> {
                 Part part = request.multipartData().getFirst("file");
-                FileStorageDTO fileStorageDTO = easyAiService.upload(part.getInputStream(), part.getSubmittedFileName());
-                fileStorageDTO = easyAiService.read(fileStorageDTO);
-                fileStorageDTO = easyAiService.save(fileStorageDTO);
-                return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(fileStorageDTO);
+                DocumentStorageDTO documentStorageDTO = easyAiService.upload(part.getInputStream(), part.getSubmittedFileName());
+                documentStorageDTO = easyAiService.read(documentStorageDTO);
+                documentStorageDTO = easyAiService.save(documentStorageDTO);
+                return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(documentStorageDTO);
             });
         }
         return builder.build();

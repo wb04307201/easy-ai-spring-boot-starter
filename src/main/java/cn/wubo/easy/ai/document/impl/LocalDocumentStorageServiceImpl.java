@@ -1,7 +1,7 @@
-package cn.wubo.easy.ai.file.impl;
+package cn.wubo.easy.ai.document.impl;
 
 import cn.wubo.easy.ai.exception.EasyAiRuntimeException;
-import cn.wubo.easy.ai.file.IFileStorageService;
+import cn.wubo.easy.ai.document.IDocumentStorageService;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
@@ -11,7 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class LocalFileStorageServiceImpl implements IFileStorageService {
+public class LocalDocumentStorageServiceImpl implements IDocumentStorageService {
 
     private String basePath = "temp";
 

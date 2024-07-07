@@ -1,10 +1,10 @@
-package cn.wubo.easy.ai.file;
+package cn.wubo.easy.ai.document;
 
 import org.springframework.core.io.Resource;
 
 import java.io.InputStream;
 
-public interface IFileStorageService {
+public interface IDocumentStorageService {
 
     String save(InputStream is, String fileName);
 

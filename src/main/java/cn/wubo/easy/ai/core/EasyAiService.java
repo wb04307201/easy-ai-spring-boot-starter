@@ -1,9 +1,8 @@
 package cn.wubo.easy.ai.core;
 
 import cn.wubo.easy.ai.document.IDocumentReaderService;
-import cn.wubo.easy.ai.dto.FileStorageDTO;
-import cn.wubo.easy.ai.file.IFileStorageRecord;
-import cn.wubo.easy.ai.file.IFileStorageService;
+import cn.wubo.easy.ai.document.IDocumentStorageRecord;
+import cn.wubo.easy.ai.document.IDocumentStorageService;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
@@ -20,13 +19,13 @@ import java.util.stream.Collectors;
 
 public class EasyAiService {
 
-    private final IFileStorageService fileStorageService;
-    private final IFileStorageRecord fileStorageRecord;
+    private final IDocumentStorageService fileStorageService;
+    private final IDocumentStorageRecord fileStorageRecord;
     private final IDocumentReaderService documentReaderService;
     private final VectorStore vectorStore;
     private final ChatModel chatModel;
 
-    public EasyAiService(IFileStorageService fileStorageService, IFileStorageRecord fileStorageRecord, IDocumentReaderService documentReaderService, VectorStore vectorStore, ChatModel chatModel) {
+    public EasyAiService(IDocumentStorageService fileStorageService, IDocumentStorageRecord fileStorageRecord, IDocumentReaderService documentReaderService, VectorStore vectorStore, ChatModel chatModel) {
         this.fileStorageService = fileStorageService;
         this.fileStorageRecord = fileStorageRecord;
         this.documentReaderService = documentReaderService;
@@ -44,19 +43,19 @@ public class EasyAiService {
      * @param fileName 文件的名称。
      * @return 返回存储文件的信息数据传输对象（DTO）。
      */
-    public FileStorageDTO upload(InputStream is, String fileName) {
+    public DocumentStorageDTO upload(InputStream is, String fileName) {
         // 创建文件存储DTO对象，用于存储文件相关信息
-        FileStorageDTO fileStorageDTO = new FileStorageDTO();
+        DocumentStorageDTO documentStorageDTO = new DocumentStorageDTO();
         // 设置文件名
-        fileStorageDTO.setFileName(fileName);
+        documentStorageDTO.setFileName(fileName);
         // 调用文件存储服务保存文件，并将返回的文件存储路径设置到DTO中
-        fileStorageDTO.setFilePath(fileStorageService.save(is, fileStorageDTO.getFileName()));
+        documentStorageDTO.setFilePath(fileStorageService.save(is, documentStorageDTO.getFileName()));
         // 设置文件存储状态为"00"，表示存储成功
-        fileStorageDTO.setState("00");
+        documentStorageDTO.setState("00");
         // 设置文件的创建时间为当前时间
-        fileStorageDTO.setCreateTime(new Date());
+        documentStorageDTO.setCreateTime(new Date());
         // 将文件存储DTO保存到文件存储记录中，并返回保存后的DTO
-        return fileStorageRecord.save(fileStorageDTO);
+        return fileStorageRecord.save(documentStorageDTO);
     }
 
     /**
@@ -67,24 +66,24 @@ public class EasyAiService {
      * 接着，通过文件存储路径获取文件资源，并读取文档内容，将读取到的文档列表设置到文件存储DTO中。
      * 最后，将文件存储的状态更新为"20"，表示处理完成，并再次记录更新时间，然后保存更新后的文件存储信息。
      *
-     * @param fileStorageDTO 文件存储DTO，包含文件的存储信息和路径。
+     * @param documentStorageDTO 文件存储DTO，包含文件的存储信息和路径。
      * @return 返回更新后的文件存储DTO，包含文件内容和最新的状态及更新时间。
      */
-    public FileStorageDTO read(FileStorageDTO fileStorageDTO) {
+    public DocumentStorageDTO read(DocumentStorageDTO documentStorageDTO) {
         // 初始化文件存储状态为"10"，表示处理中
-        fileStorageDTO.setState("10");
+        documentStorageDTO.setState("10");
         // 更新文件存储的更新时间为当前时间
-        fileStorageDTO.setUpdateTime(new Date());
+        documentStorageDTO.setUpdateTime(new Date());
         // 保存更新后的文件存储信息
-        fileStorageDTO = fileStorageRecord.save(fileStorageDTO);
+        documentStorageDTO = fileStorageRecord.save(documentStorageDTO);
         // 读取文件内容，并更新到文件存储DTO的文档列表中
-        fileStorageDTO.setDocumentList(documentReaderService.read(fileStorageService.getResource(fileStorageDTO.getFilePath())));
+        documentStorageDTO.setDocumentList(documentReaderService.read(fileStorageService.getResource(documentStorageDTO.getFilePath())));
         // 更新文件存储状态为"20"，表示处理完成
-        fileStorageDTO.setState("20");
+        documentStorageDTO.setState("20");
         // 再次更新文件存储的更新时间为当前时间
-        fileStorageDTO.setUpdateTime(new Date());
+        documentStorageDTO.setUpdateTime(new Date());
         // 保存更新后的文件存储信息
-        return fileStorageRecord.save(fileStorageDTO);
+        return fileStorageRecord.save(documentStorageDTO);
     }
 
     /**
@@ -96,24 +95,24 @@ public class EasyAiService {
      * 之后，方法将文件内容接受到vectorStore中，这一步可能是将文件内容索引到一个矢量数据库中以供后续查询。
      * 最后，方法更新文件的状态为"40"，表示文件存储过程已经完成，并再次调用fileStorageRecord的save方法来保存更新后的文件存储信息。
      *
-     * @param fileStorageDTO 包含待存储文件信息的数据传输对象。
+     * @param documentStorageDTO 包含待存储文件信息的数据传输对象。
      * @return 返回保存后的文件存储数据传输对象。
      */
-    public FileStorageDTO save(FileStorageDTO fileStorageDTO) {
+    public DocumentStorageDTO save(DocumentStorageDTO documentStorageDTO) {
         // 初始化文件存储状态为"30"，表示正在处理
-        fileStorageDTO.setState("30");
+        documentStorageDTO.setState("30");
         // 更新文件的最后一次更新时间
-        fileStorageDTO.setUpdateTime(new Date());
+        documentStorageDTO.setUpdateTime(new Date());
         // 保存文件存储信息
-        fileStorageDTO = fileStorageRecord.save(fileStorageDTO);
+        documentStorageDTO = fileStorageRecord.save(documentStorageDTO);
         // 将文件内容接受到矢量存储中
-        vectorStore.accept(fileStorageDTO.getDocumentList());
+        vectorStore.accept(documentStorageDTO.getDocumentList());
         // 更新文件存储状态为"40"，表示处理完成
-        fileStorageDTO.setState("40");
+        documentStorageDTO.setState("40");
         // 更新文件的最后一次更新时间
-        fileStorageDTO.setUpdateTime(new Date());
+        documentStorageDTO.setUpdateTime(new Date());
         // 保存更新后的文件存储信息
-        return fileStorageRecord.save(fileStorageDTO);
+        return fileStorageRecord.save(documentStorageDTO);
     }
 
     /**
@@ -167,16 +166,16 @@ public class EasyAiService {
      */
     public Boolean delete(String id) {
         // 根据ID查找文件存储记录。
-        FileStorageDTO fileStorageDTO = fileStorageRecord.findById(id);
+        DocumentStorageDTO documentStorageDTO = fileStorageRecord.findById(id);
 
         // 删除文件存储DTO中包含的所有文档。
-        vectorStore.delete(fileStorageDTO.getDocumentList().stream().map(Document::getId).toList());
+        vectorStore.delete(documentStorageDTO.getDocumentList().stream().map(Document::getId).toList());
 
         // 删除文件存储服务中的实际文件。
-        fileStorageService.delete(fileStorageDTO.getFilePath());
+        fileStorageService.delete(documentStorageDTO.getFilePath());
 
         // 从文件存储记录中删除相应的记录。
-        fileStorageRecord.delete(fileStorageDTO);
+        fileStorageRecord.delete(documentStorageDTO);
 
         // 返回确认删除操作已执行。
         return Boolean.TRUE;
@@ -188,11 +187,11 @@ public class EasyAiService {
      * 本方法通过调用FileStorageRecord类的list方法，来获取并返回文件存储的相关信息。
      * 使用FileStorageDTO作为参数和返回值，可以详细地描述文件存储的细节，包括但不限于文件的名称、位置、大小等。
      *
-     * @param fileStorageDTO 文件存储数据传输对象，包含用于查询文件存储信息的条件。
+     * @param documentStorageDTO 文件存储数据传输对象，包含用于查询文件存储信息的条件。
      * @return 返回一个文件存储DTO的列表，列表中的每个元素都代表一个文件的存储信息。
      */
-    public List<FileStorageDTO> list(FileStorageDTO fileStorageDTO) {
-        return fileStorageRecord.list(fileStorageDTO);
+    public List<DocumentStorageDTO> list(DocumentStorageDTO documentStorageDTO) {
+        return fileStorageRecord.list(documentStorageDTO);
     }
 
     /**
@@ -202,11 +201,11 @@ public class EasyAiService {
      * 它封装了对文件存储服务的调用，使得调用者不需要直接与文件存储细节交互，
      * 提高了代码的可维护性和可扩展性。
      *
-     * @param fileStorageDTO 包含文件路径信息的数据传输对象。
+     * @param documentStorageDTO 包含文件路径信息的数据传输对象。
      * @return 文件的字节内容。如果文件不存在或路径无效，可能返回null。
      */
-    public byte[] getBytes(FileStorageDTO fileStorageDTO) {
+    public byte[] getBytes(DocumentStorageDTO documentStorageDTO) {
         // 调用文件存储服务，根据文件路径获取字节内容
-        return fileStorageService.getBytes(fileStorageDTO.getFilePath());
+        return fileStorageService.getBytes(documentStorageDTO.getFilePath());
     }
 }
