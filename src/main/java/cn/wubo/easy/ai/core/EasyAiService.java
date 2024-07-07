@@ -171,11 +171,11 @@ public class EasyAiService {
         // 删除文件存储DTO中包含的所有文档。
         vectorStore.delete(documentStorageDTO.getDocumentList().stream().map(Document::getId).toList());
 
-        // 删除文件存储服务中的实际文件。
-        fileStorageService.delete(documentStorageDTO.getFilePath());
-
         // 从文件存储记录中删除相应的记录。
         fileStorageRecord.delete(documentStorageDTO);
+
+        // 删除文件存储服务中的实际文件。
+        fileStorageService.delete(documentStorageDTO.getFilePath());
 
         // 返回确认删除操作已执行。
         return Boolean.TRUE;
