@@ -1,10 +1,8 @@
 package cn.wubo.easy.ai.config;
 
 import cn.wubo.easy.ai.core.EasyAiService;
-import cn.wubo.easy.ai.document.IDocumentContentRecord;
 import cn.wubo.easy.ai.document.IDocumentReaderService;
 import cn.wubo.easy.ai.document.impl.DocumentReaderServiceImpl;
-import cn.wubo.easy.ai.document.impl.MemDocumentContentRecordImpl;
 import cn.wubo.easy.ai.dto.FileStorageDTO;
 import cn.wubo.easy.ai.exception.EasyAiRuntimeException;
 import cn.wubo.easy.ai.file.IFileStorageRecord;
@@ -12,6 +10,7 @@ import cn.wubo.easy.ai.file.IFileStorageService;
 import cn.wubo.easy.ai.file.impl.LocalFileStorageServiceImpl;
 import cn.wubo.easy.ai.file.impl.MemFileStorageRecordImpl;
 import cn.wubo.easy.ai.utils.PageUtils;
+import jakarta.servlet.http.Part;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.reader.ExtractedTextFormatter;
@@ -69,11 +68,6 @@ public class EasyAiConfiguration {
         // 初始化线程池，使配置生效
         executor.initialize();
         return executor;
-    }
-
-    @Bean
-    public IDocumentContentRecord documentContentRecord() {
-        return new MemDocumentContentRecordImpl();
     }
 
     @Bean
@@ -135,7 +129,7 @@ public class EasyAiConfiguration {
     }
 
     @Bean
-    public EasyAiService easyAiService(List<IFileStorageService> fileStorageServiceList, List<IFileStorageRecord> fileStorageRecordList, IDocumentReaderService documentReaderService, List<IDocumentContentRecord> documentContentRecordList, VectorStore vectorStore, ChatModel chatModel) {
+    public EasyAiService easyAiService(List<IFileStorageService> fileStorageServiceList, List<IFileStorageRecord> fileStorageRecordList, IDocumentReaderService documentReaderService, VectorStore vectorStore, ChatModel chatModel) {
         // @formatter:off
         IFileStorageService fileStorageService = fileStorageServiceList.stream()
                 .filter(obj -> obj.getClass().getName().equals(properties.getFileStorageServiceClass()))
@@ -148,15 +142,9 @@ public class EasyAiConfiguration {
                 .findAny()
                 .orElseThrow(() -> new EasyAiRuntimeException(String.format("未找到%s对应的bean，无法加载IFileStorageRecord！", properties.getFileStorageRecordClass())));
         fileStorageRecord.init();
-
-        IDocumentContentRecord documentContentRecord = documentContentRecordList.stream()
-                .filter(obj -> obj.getClass().getName().equals(properties.getDocumentContentRecordClass()))
-                .findAny()
-                .orElseThrow(() -> new EasyAiRuntimeException(String.format("未找到%s对应的bean，无法加载IDocumentContentRecord！", properties.getDocumentContentRecordClass())));
-        documentContentRecord.init();
         // @formatter:on
 
-        return new EasyAiService(fileStorageService, fileStorageRecord, documentReaderService, documentContentRecord, vectorStore, chatModel);
+        return new EasyAiService(fileStorageService, fileStorageRecord, documentReaderService, vectorStore, chatModel);
     }
 
     @Bean("wb04307201EasyAiRouter")
@@ -181,12 +169,11 @@ public class EasyAiConfiguration {
                 return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(easyAiService.chat(prompt));
             });
             builder.POST("/easy/ai/upload", request -> {
-                List<FileStorageDTO> fileStorageDTOS = easyAiService.upload(request.multipartData());
-                for (FileStorageDTO fileStorageDTO : fileStorageDTOS) {
-                    fileStorageDTO = easyAiService.read(fileStorageDTO);
-                    fileStorageDTO = easyAiService.save(fileStorageDTO);
-                }
-                return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(fileStorageDTOS);
+                Part part = request.multipartData().getFirst("file");
+                FileStorageDTO fileStorageDTO = easyAiService.upload(part.getInputStream(), part.getSubmittedFileName());
+                fileStorageDTO = easyAiService.read(fileStorageDTO);
+                fileStorageDTO = easyAiService.save(fileStorageDTO);
+                return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(fileStorageDTO);
             });
         }
         return builder.build();
