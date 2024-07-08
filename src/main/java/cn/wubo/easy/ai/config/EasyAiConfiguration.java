@@ -1,18 +1,22 @@
 package cn.wubo.easy.ai.config;
 
-import cn.wubo.easy.ai.core.EasyAiService;
-import cn.wubo.easy.ai.document.IDocumentReaderService;
-import cn.wubo.easy.ai.document.impl.DocumentReaderServiceImpl;
 import cn.wubo.easy.ai.core.DocumentStorageDTO;
-import cn.wubo.easy.ai.exception.EasyAiRuntimeException;
+import cn.wubo.easy.ai.core.EasyAiService;
+import cn.wubo.easy.ai.core.PromptRecord;
+import cn.wubo.easy.ai.document.IDocumentReaderService;
 import cn.wubo.easy.ai.document.IDocumentStorageRecord;
 import cn.wubo.easy.ai.document.IDocumentStorageService;
+import cn.wubo.easy.ai.document.impl.DocumentReaderServiceImpl;
 import cn.wubo.easy.ai.document.impl.LocalDocumentStorageServiceImpl;
 import cn.wubo.easy.ai.document.impl.MemDocumentStorageRecordImpl;
+import cn.wubo.easy.ai.exception.EasyAiRuntimeException;
+import cn.wubo.easy.ai.exception.PageRuntimeException;
+import cn.wubo.easy.ai.result.Result;
+import cn.wubo.easy.ai.utils.FileUtils;
+import cn.wubo.easy.ai.utils.IoUtils;
 import cn.wubo.easy.ai.utils.PageUtils;
 import jakarta.servlet.http.Part;
 import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.reader.ExtractedTextFormatter;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.VectorStore;
@@ -26,9 +30,13 @@ import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.ServerResponse;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -128,8 +136,22 @@ public class EasyAiConfiguration {
         return new DocumentReaderServiceImpl(tokenTextSplitter, extractedTextFormatter);
     }
 
+    /**
+     * 创建并配置EasyAiService实例。
+     * 该方法通过依赖注入获得多个服务和模型的实例，从中选择特定的文件存储服务和文件存储记录实例，
+     * 并初始化它们。然后，使用这些实例创建EasyAiService对象。
+     *
+     * @param fileStorageServiceList 文件存储服务列表，用于筛选符合特定类名的文件存储服务实例。
+     * @param fileStorageRecordList  文件存储记录列表，用于筛选符合特定类名的文件存储记录实例。
+     * @param documentReaderService  文档阅读服务实例，用于处理文档阅读相关任务。
+     * @param vectorStore            向量存储实例，用于存储和检索向量数据。
+     * @param chatModel              聊天模型实例，用于支持聊天功能。
+     * @return 配置完成的EasyAiService实例。
+     * @throws EasyAiRuntimeException 如果无法找到配置的文件存储服务或文件存储记录对应的Bean，则抛出此异常。
+     */
     @Bean
     public EasyAiService easyAiService(List<IDocumentStorageService> fileStorageServiceList, List<IDocumentStorageRecord> fileStorageRecordList, IDocumentReaderService documentReaderService, VectorStore vectorStore, ChatModel chatModel) {
+        // 从文件存储服务列表中筛选出符合配置类名的服务实例，并初始化它。
         // @formatter:off
         IDocumentStorageService fileStorageService = fileStorageServiceList.stream()
                 .filter(obj -> obj.getClass().getName().equals(properties.getFileStorageServiceClass()))
@@ -137,6 +159,7 @@ public class EasyAiConfiguration {
                 .orElseThrow(() -> new EasyAiRuntimeException(String.format("未找到%s对应的bean，无法加载IFileStorageService！", properties.getFileStorageServiceClass())));
         fileStorageService.init();
 
+        // 从文件存储记录列表中筛选出符合配置类名的记录实例，并初始化它。
         IDocumentStorageRecord fileStorageRecord = fileStorageRecordList.stream()
                 .filter(obj -> obj.getClass().getName().equals(properties.getFileStorageRecordClass()))
                 .findAny()
@@ -144,8 +167,12 @@ public class EasyAiConfiguration {
         fileStorageRecord.init();
         // @formatter:on
 
+        // 使用筛选并初始化的服务和模型实例创建EasyAiService对象。
         return new EasyAiService(fileStorageService, fileStorageRecord, documentReaderService, vectorStore, chatModel);
     }
+
+
+    private static final String LOST_ID = "请求参数id丢失!";
 
     @Bean("wb04307201EasyAiRouter")
     public RouterFunction<ServerResponse> easyAiRouter(EasyAiService easyAiService) {
@@ -158,23 +185,50 @@ public class EasyAiConfiguration {
                 // 渲染并返回文件预览列表页面。
                 return ServerResponse.ok().contentType(MediaType.TEXT_HTML).body(PageUtils.write("list.ftl", data));
             });
+            builder.GET("/easy/ai/chat", RequestPredicates.accept(MediaType.TEXT_HTML), request -> {
+                Map<String, Object> data = new HashMap<>();
+                data.put("contextPath", request.requestPath().contextPath().value());
+                // 渲染并返回文件预览列表页面。
+                return ServerResponse.ok().contentType(MediaType.TEXT_HTML).body(PageUtils.write("chat.ftl", data));
+            });
         }
         if (properties.getEnableRest()) {
-            builder.POST("/easy/ai/chatWithDocument", request -> {
-                Prompt prompt = request.body(Prompt.class);
-                return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(easyAiService.chatWithDocument(prompt, properties.getSystemPromptTemplate()));
-            });
-            builder.POST("/easy/ai/chat", request -> {
-                Prompt prompt = request.body(Prompt.class);
-                return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(easyAiService.chat(prompt));
+            builder.POST("/easy/ai/list", request -> {
+                DocumentStorageDTO documentStorageDTO = request.body(DocumentStorageDTO.class);
+                return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(Result.success(easyAiService.list(documentStorageDTO)));
             });
             builder.POST("/easy/ai/upload", request -> {
                 Part part = request.multipartData().getFirst("file");
                 DocumentStorageDTO documentStorageDTO = easyAiService.upload(part.getInputStream(), part.getSubmittedFileName());
                 documentStorageDTO = easyAiService.read(documentStorageDTO);
                 documentStorageDTO = easyAiService.save(documentStorageDTO);
-                return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(documentStorageDTO);
+                return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(Result.success(documentStorageDTO));
             });
+            builder.GET("/easy/ai/delete", request -> {
+                String id = request.param("id").orElseThrow(() -> new IllegalArgumentException(LOST_ID));
+                return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(Result.success(easyAiService.delete(id)));
+            });
+            builder.GET("/easy/ai/download", request -> {
+                String id = request.param("id").orElseThrow(() -> new IllegalArgumentException(LOST_ID));
+                DocumentStorageDTO documentStorageDTO = easyAiService.findById(id);
+                byte[] bytes = easyAiService.getBytes(documentStorageDTO);
+                // @formatter:off
+                // 处理文件下载请求，返回文件内容。
+                return ServerResponse.ok().contentType(MediaType.parseMediaType(FileUtils.getMimeType(documentStorageDTO.getFileName())))
+                        .contentLength(bytes.length)
+                        .header("Content-Disposition", "attachment;filename=" + new String(Objects.requireNonNull(documentStorageDTO.getFileName()).getBytes(), StandardCharsets.ISO_8859_1))
+                        .build((res, req) -> {
+                            try (OutputStream os = req.getOutputStream()) {
+                                IoUtils.writeToStream(bytes, os);
+                            } catch (IOException e) {
+                                throw new PageRuntimeException(e.getMessage(), e);
+                            }
+                            return null;
+                        });
+                // @formatter:on
+            });
+            builder.POST("/easy/ai/chat", request -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(Result.success(easyAiService.chat(request.body(PromptRecord.class).getPromptMessages()))));
+            builder.POST("/easy/ai/chatWithDocument", request -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(Result.success(easyAiService.chatWithDocument(request.body(PromptRecord.class).getPromptMessages(), properties.getSystemPromptTemplate()))));
         }
         return builder.build();
     }

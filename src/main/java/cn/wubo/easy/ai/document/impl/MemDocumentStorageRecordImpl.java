@@ -1,8 +1,8 @@
 package cn.wubo.easy.ai.document.impl;
 
 import cn.wubo.easy.ai.core.DocumentStorageDTO;
-import cn.wubo.easy.ai.exception.EasyAiRuntimeException;
 import cn.wubo.easy.ai.document.IDocumentStorageRecord;
+import cn.wubo.easy.ai.exception.EasyAiRuntimeException;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;

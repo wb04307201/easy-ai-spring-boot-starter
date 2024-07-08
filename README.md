@@ -5,13 +5,19 @@
 [![star](https://gitee.com/wb04307201/easy-ai-spring-boot-starter/badge/star.svg?theme=dark)](https://gitee.com/wb04307201/easy-ai-spring-boot-starter)
 [![fork](https://gitee.com/wb04307201/easy-ai-spring-boot-starter/badge/fork.svg?theme=dark)](https://gitee.com/wb04307201/easy-ai-spring-boot-starter)
 [![star](https://img.shields.io/github/stars/wb04307201/easy-ai-spring-boot-starter)](https://github.com/wb04307201/easy-ai-spring-boot-starter)
-[![fork](https://img.shields.io/github/forks/wb04307201/easy-ai-spring-boot-starter)](https://github.com/wb04307201/easy-ai-spring-boot-starter)
+[![fork](https://img.shields.io/github/forks/wb04307201/easy-ai-spring-boot-starter)](https://github.com/wb04307201/easy-ai-spring-boot-starter)  
+![MIT](https://img.shields.io/badge/License-Apache2.0-blue.svg) ![JDK](https://img.shields.io/badge/JDK-17+-green.svg) ![SpringBoot](https://img.shields.io/badge/Srping%20Boot-3+-green.svg)
 
-> 快速集成AI大模型到Spring项目的组件
 
-## 代码示例
+> 这不是一个AI大模型，但是可以帮你快速集成AI大模型到Spring项目中，  
+> 并通过“检索增强生成(RAG)”的方式建立专家知识库帮助大模型回答问题。  
+> 
+> 核心功能依赖于[Spring AI](https://docs.spring.io/spring-ai/reference/index.html)实现，RAG运行原理如下  
+> ![img_3.png](img_3.png)
 
-## 第一步 增加 JitPack 仓库
+## 快速开始
+### 引入依赖
+增加 JitPack 仓库
 ```xml
 <repositories>
     <repository>
@@ -20,8 +26,7 @@
     </repository>
 </repositories>
 ```
-
-## 第二步 引入jar
+引入jar
 ```xml
 <dependency>
     <groupId>com.github.wb04307201</groupId>
@@ -30,24 +35,103 @@
 </dependency>
 ```
 
-## 第三步 在启动类上加上`@EnableFilePreview`注解
+### 安装向量数据库
+通过docker安装chromadb数据库
+```shell
+docker run -d --name chromadb -p 8000:8000 chromadb/chroma
+```
+
+### 安装大语言模型
+默认通过[ollama](https://ollama.com/)使用大模型，下载并安装
+```shell
+# 拉取llama3模型
+ollama pull llama3
+# 拉取qwen2模型
+ollama pull qwen2
+```
+
+### 添加相关配置
+```yaml
+spring:
+  application:
+    name: spring_ai_demo
+  ai:
+    ollama:
+      chat:
+        options:
+          #  model: llama3
+          model: qwen2
+      embedding:
+        options:
+          model: llama3
+      base-url: "http://localhost:11434"
+    vectorstore:
+      chroma:
+        client:
+          host: http://localhost
+          port: 8000
+        store:
+          collection-name: SpringAiCollection
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+```
+
+### 在启动类上加上`@EnableEasyAi`注解
 ```java
 @EnableEasyAi
 @SpringBootApplication
 public class EasyAiDemoApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(FilePreviewDemoApplication.class, args);
+        SpringApplication.run(EasyAiDemoApplication.class, args);
     }
 
 }
 ```
 
+### 使用大模型对话
+内置聊天界面http://ip:端口/easy/ai/chat  
+![img.png](img.png)
 
+### 使用专家知识库的大模型对话
+内置上传界面http://ip:端口/easy/ai/list  
+![img_1.png](img_1.png)
+状态列显示“向量存储完”即文档已转入知识库  
+内置聊天界面http://ip:端口/easy/ai/chat  
+![img_2.png](img_2.png)
+
+## 高级
+### 使用大模型API
+这里以[智谱AI](https://open.bigmodel.cn/)为例，如何对接大模型API  
+修改项目依赖，支持的大模型平台可到[Spring AI](https://docs.spring.io/spring-ai/reference/index.html)查看  
+```xml
+        <dependency>
+            <groupId>com.gitee.wb04307201</groupId>
+            <artifactId>easy-ai-spring-boot-starter</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.ai</groupId>
+                    <artifactId>spring-ai-ollama-spring-boot-starter</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-zhipuai-spring-boot-starter</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+```
+修改配置项目
+```yaml
+spring:
+  ai:
+    zhipuai:
+      api-key: 智谱AI API Key
+```
+> 除了大模型API外，向量数据库也可以参照上面的方式进行替换
 ```shell
-docker run -d --name chromadb -p 8000:8000 chromadb/chroma
-
 docker run -d --name cassandra -p 9042:9042 cassandra
 ```
-
-上传文件-》存储文件/记录（状态：上传文件）-》根据记录获取resource-》开始拆分文件（状态：拆分中）-》异步拆分文件-》存储拆分记录（状态：拆分结束）-》开始向量存储（状态：向量存储中）-》异步向量存储-》向量存储结束（状态：向量存储完成）

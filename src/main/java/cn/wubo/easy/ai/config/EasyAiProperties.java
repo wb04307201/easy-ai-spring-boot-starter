@@ -17,9 +17,8 @@ public class EasyAiProperties {
             """;*/
     private String systemPromptTemplate = """
             下面的信息({documents})是否有这个问题({message})有关，
-            如果你觉得无关请告诉我无法根据提供的上下文回答'{message}'这个问题，
-            简要回答即可，
-            否则请根据{documents}对{message}的问题进行回答
+            如果你觉得无关请直接回答({message})这个问题，
+            否则请根据({documents})对({message})的问题进行回答。
             """;
     private String fileStorageServiceClass = "cn.wubo.easy.ai.document.impl.LocalDocumentStorageServiceImpl";
     private String fileStorageRecordClass = "cn.wubo.easy.ai.document.impl.MemDocumentStorageRecordImpl";

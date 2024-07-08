@@ -1,7 +1,7 @@
 package cn.wubo.easy.ai.document.impl;
 
-import cn.wubo.easy.ai.exception.EasyAiRuntimeException;
 import cn.wubo.easy.ai.document.IDocumentStorageService;
+import cn.wubo.easy.ai.exception.EasyAiRuntimeException;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
@@ -17,11 +17,10 @@ public class LocalDocumentStorageServiceImpl implements IDocumentStorageService 
 
     @Override
     public String save(InputStream is, String fileName) {
-        Path filePath = Paths.get(basePath, fileName);
+        Path filePath = Paths.get(basePath, System.currentTimeMillis() + "", fileName);
         try {
             Files.createDirectories(filePath.getParent());
             if (Files.exists(filePath)) Files.delete(filePath);
-            Files.createFile(filePath);
             Files.copy(is, filePath);
             return filePath.toString();
         } catch (IOException e) {

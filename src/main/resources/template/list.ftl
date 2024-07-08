@@ -55,6 +55,23 @@
 </div>
 <!-- 原始容器 -->
 <table class="layui-hide" id="table"></table>
+<!-- 状态列 -->
+<script type="text/html" id="table-templet-state">
+    <div class="layui-clear-space">
+        <!-- 00 上传 10 文档拆分中 20 文档拆分完 30 向量存储中 40 向量存储完 -->
+        {{#  if(d.status == '00'){ }}
+        上传
+        {{#  } else if(d.state = '10') { }}
+        文档拆分中
+        {{#  } else if(d.state = '20') { }}
+        文档拆分完
+        {{#  } else if(d.state = '30') { }}
+        向量存储中
+        {{#  } else if(d.state = '40') { }}
+        向量存储完
+        {{#  } }}
+    </div>
+</script>
 <!-- 操作列 -->
 <script type="text/html" id="table-templet-operator">
     <div class="layui-clear-space">
@@ -94,8 +111,8 @@
                 {type: 'numbers', fixed: 'left'},
                 {field: 'id', title: 'ID', width: 150, fixed: 'left', hide: true},
                 {field: 'fileName', title: '文件名', width: 300},
-                {field: 'originalFilename', title: '原始文件名', width: 300},
-                {field: 'filePath', title: '文件位置', width: 300},
+                {field: 'filePath', title: '文件位置', width: 350},
+                {field: 'state', title: '状态', width: 150, templet: '#table-templet-state'},
                 {field: 'operator', title: '操作', width: 200, fixed: 'right', templet: '#table-templet-operator'},
             ]],
             url: '${contextPath}/easy/ai/list',

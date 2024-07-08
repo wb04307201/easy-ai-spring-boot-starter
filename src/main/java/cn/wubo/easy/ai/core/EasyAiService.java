@@ -60,7 +60,7 @@ public class EasyAiService {
 
     /**
      * 读取文件存储信息并更新状态。
-     *
+     * <p>
      * 此方法接收一个文件存储数据传输对象（FileStorageDTO）作为输入，读取文件内容，并更新文件存储的状态和更新时间。
      * 方法首先将文件存储的状态设置为"10"，表示正在处理中，然后记录更新时间。
      * 接着，通过文件存储路径获取文件资源，并读取文档内容，将读取到的文档列表设置到文件存储DTO中。
@@ -88,7 +88,7 @@ public class EasyAiService {
 
     /**
      * 保存文件存储信息。
-     *
+     * <p>
      * 此方法接收一个文件存储数据传输对象（FileStorageDTO）作为输入，该对象包含有关待存储文件的信息。
      * 方法首先设置文件的初始状态为"30"，表示文件存储过程已经开始，然后更新文件的更新时间。
      * 接下来，方法调用fileStorageRecord的save方法来保存文件存储信息，并更新fileStorageDTO对象。
@@ -145,19 +145,21 @@ public class EasyAiService {
         String lastMessage = messageList.get(messageList.size() - 1).getContent();
         // 根据最后一条消息的内容，在向量存储中寻找相似的文档。
         List<Document> documentList = vectorStore.similaritySearch(lastMessage);
-        // 将找到的文档内容合并为一个字符串。
-        String documents = documentList.stream().map(Document::getContent).collect(Collectors.joining());
-        // 使用系统提示模板和文档内容生成一条系统消息。
-        Message systemMessage = new SystemPromptTemplate(systemPromptTemplate).createMessage(Map.of("documents", documents, "message", lastMessage));
-        // 将系统消息插入到提示序列的开头。
-        prompt.getInstructions().add(0, systemMessage);
+        if (!documentList.isEmpty()) {
+            // 将找到的文档内容合并为一个字符串。
+            String documents = documentList.stream().map(Document::getContent).collect(Collectors.joining());
+            // 使用系统提示模板和文档内容生成一条系统消息。
+            Message systemMessage = new SystemPromptTemplate(systemPromptTemplate).createMessage(Map.of("documents", documents, "message", lastMessage));
+            // 将系统消息插入到提示序列的开头。
+            prompt.getInstructions().add(0, systemMessage);
+        }
         // 使用更新后的提示序列调用聊天模型以生成聊天响应。
         return chatModel.call(prompt);
     }
 
     /**
      * 根据文件存储ID删除文件及相关记录。
-     *
+     * <p>
      * 此方法通过ID查找文件存储记录，然后删除该记录对应的文档列表中的所有文档，
      * 并删除文件存储服务中的实际文件。最后，从文件存储记录中删除该条记录。
      *
@@ -179,6 +181,19 @@ public class EasyAiService {
 
         // 返回确认删除操作已执行。
         return Boolean.TRUE;
+    }
+
+    /**
+     * 根据ID查找文档存储信息。
+     * <p>
+     * 本方法通过调用文件存储记录的查找方法，根据给定的ID检索文档存储的相关信息。
+     * 这是对文档存储服务的一个基本操作，用于获取特定文档的存储详情。
+     *
+     * @param id 文档的唯一标识符。这个标识符用于在存储系统中定位特定的文档记录。
+     * @return DocumentStorageDTO 对象，包含所查找文档的存储详情。如果找不到对应ID的文档，则返回null。
+     */
+    public DocumentStorageDTO findById(String id) {
+        return fileStorageRecord.findById(id);
     }
 
     /**
