@@ -1,7 +1,7 @@
 # easy-ai-spring-boot-starter
 # 易智Spring
 
-[![](https://jitpack.io/v/wb04307201/easy-ai-spring-boot-starter.svg)](https://jitpack.io/#wb04307201/easy-ai-spring-boot-starter)
+[![](https://jitpack.io/v/com.gitee.wb04307201/easy-ai-spring-boot-starter.svg)](https://jitpack.io/#com.gitee.wb04307201/easy-ai-spring-boot-starter)
 [![star](https://gitee.com/wb04307201/easy-ai-spring-boot-starter/badge/star.svg?theme=dark)](https://gitee.com/wb04307201/easy-ai-spring-boot-starter)
 [![fork](https://gitee.com/wb04307201/easy-ai-spring-boot-starter/badge/fork.svg?theme=dark)](https://gitee.com/wb04307201/easy-ai-spring-boot-starter)
 [![star](https://img.shields.io/github/stars/wb04307201/easy-ai-spring-boot-starter)](https://github.com/wb04307201/easy-ai-spring-boot-starter)
