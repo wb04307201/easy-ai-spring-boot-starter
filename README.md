@@ -8,7 +8,6 @@
 [![fork](https://img.shields.io/github/forks/wb04307201/easy-ai-spring-boot-starter)](https://github.com/wb04307201/easy-ai-spring-boot-starter)  
 ![MIT](https://img.shields.io/badge/License-Apache2.0-blue.svg) ![JDK](https://img.shields.io/badge/JDK-17+-green.svg) ![SpringBoot](https://img.shields.io/badge/Srping%20Boot-3+-green.svg)
 
-
 > 这不是一个AI大模型，但是可以帮你快速集成AI大模型到Spring项目中，  
 > 并通过“检索增强生成(RAG)”的方式建立专家知识库帮助大模型回答问题。  
 > 
