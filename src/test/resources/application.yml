@@ -2,16 +2,12 @@ spring:
   application:
     name: spring_ai_demo
   ai:
-    zhipuai:
-      api-key: 432156df16b143d0de306258380cba88.MoDsO9pZdQI2MNWh
     ollama:
       chat:
         options:
-#          model: qwen2
           model: llama3
       embedding:
         options:
-#          model: qwen2
           model: llama3
       base-url: "http://localhost:11434"
     vectorstore:
