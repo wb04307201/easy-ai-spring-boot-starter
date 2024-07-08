@@ -21,9 +21,8 @@ public class EasyAiProperties {
             简要回答即可，
             否则请根据{documents}对{message}的问题进行回答
             """;
-    private String fileStorageServiceClass = "cn.wubo.easy.ai.file.impl.LocalFileStorageServiceImpl";
-    private String fileStorageRecordClass = "cn.wubo.easy.ai.file.impl.MemFileStorageRecordImpl";
-    private String documentContentRecordClass = "cn.wubo.easy.ai.document.impl.MemDocumentContentRecordImpl";
+    private String fileStorageServiceClass = "cn.wubo.easy.ai.document.impl.LocalDocumentStorageServiceImpl";
+    private String fileStorageRecordClass = "cn.wubo.easy.ai.document.impl.MemDocumentStorageRecordImpl";
     private Boolean enableWeb = Boolean.TRUE;
     private Boolean enableRest = Boolean.TRUE;
 }
