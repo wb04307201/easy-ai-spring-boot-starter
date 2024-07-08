@@ -14,6 +14,9 @@
 > 核心功能依赖于[Spring AI](https://docs.spring.io/spring-ai/reference/index.html)实现，RAG运行原理如下  
 > ![img_3.png](img_3.png)
 
+## 代码示例
+1. 使用[易智Spring](https://gitee.com/wb04307201/easy-ai-spring-boot-starter)实现的[AI大模型Demo](https://gitee.com/wb04307201/easy-ai-demo)
+
 ## 快速开始
 ### 引入依赖
 增加 JitPack 仓库
