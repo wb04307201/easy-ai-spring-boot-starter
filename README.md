@@ -112,7 +112,7 @@ public class EasyAiDemoApplication {
         <dependency>
             <groupId>com.gitee.wb04307201</groupId>
             <artifactId>easy-ai-spring-boot-starter</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>0.5.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework.ai</groupId>
@@ -134,6 +134,3 @@ spring:
       api-key: 智谱AI API Key
 ```
 > 除了大模型API外，向量数据库也可以参照上面的方式进行替换
-```shell
-docker run -d --name cassandra -p 9042:9042 cassandra
-```
