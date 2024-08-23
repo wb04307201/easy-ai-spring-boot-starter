@@ -192,7 +192,7 @@ public class EasyAiConfiguration {
                 return ServerResponse.ok().contentType(MediaType.TEXT_HTML).body(PageUtils.write("chat.ftl", data));
             });
         }
-        if (properties.getEnableRest()) {
+        if (Boolean.TRUE.equals(properties.getEnableRest())) {
             builder.POST("/easy/ai/list", request -> {
                 DocumentStorageDTO documentStorageDTO = request.body(DocumentStorageDTO.class);
                 return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(Result.success(easyAiService.list(documentStorageDTO)));
