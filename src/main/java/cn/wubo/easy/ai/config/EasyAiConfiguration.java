@@ -1,8 +1,8 @@
 package cn.wubo.easy.ai.config;
 
+import cn.wubo.easy.ai.core.ChatRecord;
 import cn.wubo.easy.ai.core.DocumentStorageDTO;
 import cn.wubo.easy.ai.core.EasyAiService;
-import cn.wubo.easy.ai.core.PromptRecord;
 import cn.wubo.easy.ai.document.IDocumentReaderService;
 import cn.wubo.easy.ai.document.IDocumentStorageRecord;
 import cn.wubo.easy.ai.document.IDocumentStorageService;
@@ -249,8 +249,7 @@ public class EasyAiConfiguration {
                         });
                 // @formatter:on
             });
-            builder.POST("/easy/ai/chat", request -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(Result.success(easyAiService.chat(request.body(PromptRecord.class).getPromptMessages()))));
-            builder.POST("/easy/ai/chatWithDocument", request -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(Result.success(easyAiService.chatWithDocument(request.body(PromptRecord.class).getPromptMessages(), properties.getSystemPromptTemplate()))));
+            builder.POST("/easy/ai/chat", request -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(Result.success(easyAiService.chat(request.body(ChatRecord.class)))));
         }
         return builder.build();
     }

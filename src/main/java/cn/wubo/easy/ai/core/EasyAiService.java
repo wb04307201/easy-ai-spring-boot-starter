@@ -6,9 +6,7 @@ import cn.wubo.easy.ai.document.IDocumentStorageService;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.QuestionAnswerAdvisor;
-import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.model.ChatResponse;
-import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
 
@@ -114,30 +112,14 @@ public class EasyAiService {
         return fileStorageRecord.save(documentStorageDTO);
     }
 
-    /**
-     * 根据给定的Prompt对象生成聊天响应
-     * 此方法封装了与聊天客户端的交互，通过Prompt对象构建请求，并获取聊天响应
-     * 主要用于简化与聊天客户端的通信流程
-     *
-     * @param prompt Prompt对象，包含聊天所需的所有信息，如用户输入、上下文等
-     * @return ChatResponse对象，代表聊天客户端的响应，包含响应文本、元数据等
-     */
-    public ChatResponse chat(Prompt prompt) {
-        // 使用Prompt对象调用聊天客户端的prompt方法，并执行调用，最后获取聊天响应
-        return chatClient.prompt(prompt).call().chatResponse();
-    }
-
-    public ChatResponse chatWithDocument(Prompt prompt) {
-        // 从用户的提示中获取消息列表。
-        List<Message> messageList = prompt.getInstructions();
-        // 获取消息列表中的最后一条消息的内容。
-        String lastMessage = messageList.get(messageList.size() - 1).getContent();
+    public ChatResponse chat(ChatRecord chatRecord) {
         // @formatter:off
         return chatClient
-                .prompt(prompt)
+                .prompt()
+                .user(chatRecord.message())
                 .system("")
-                .advisors(a -> a.param(AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY, ""))
-                .advisors(a -> a.param(QuestionAnswerAdvisor.FILTER_EXPRESSION, lastMessage))
+                .advisors(a -> a.param(AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY, chatRecord.conversationId()))
+                .advisors(a -> a.param(QuestionAnswerAdvisor.FILTER_EXPRESSION, chatRecord.message()))
                 .call()
                 .chatResponse();
         // @formatter:on
