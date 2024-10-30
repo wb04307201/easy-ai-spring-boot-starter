@@ -3,19 +3,16 @@ package cn.wubo.easy.ai.core;
 import cn.wubo.easy.ai.document.IDocumentReaderService;
 import cn.wubo.easy.ai.document.IDocumentStorageRecord;
 import cn.wubo.easy.ai.document.IDocumentStorageService;
-import org.springframework.ai.chat.messages.Message;
-import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor;
+import org.springframework.ai.chat.client.advisor.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.model.ChatResponse;
-import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
 
 import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 public class EasyAiService {
 
@@ -23,14 +20,14 @@ public class EasyAiService {
     private final IDocumentStorageRecord fileStorageRecord;
     private final IDocumentReaderService documentReaderService;
     private final VectorStore vectorStore;
-    private final ChatModel chatModel;
+    private final ChatClient chatClient;
 
-    public EasyAiService(IDocumentStorageService fileStorageService, IDocumentStorageRecord fileStorageRecord, IDocumentReaderService documentReaderService, VectorStore vectorStore, ChatModel chatModel) {
+    public EasyAiService(IDocumentStorageService fileStorageService, IDocumentStorageRecord fileStorageRecord, IDocumentReaderService documentReaderService, VectorStore vectorStore, ChatClient chatClient) {
         this.fileStorageService = fileStorageService;
         this.fileStorageRecord = fileStorageRecord;
         this.documentReaderService = documentReaderService;
         this.vectorStore = vectorStore;
-        this.chatModel = chatModel;
+        this.chatClient = chatClient;
     }
 
     /**
@@ -115,46 +112,16 @@ public class EasyAiService {
         return fileStorageRecord.save(documentStorageDTO);
     }
 
-    /**
-     * 根据给定的提示进行聊天交互。
-     * <p>
-     * 本方法通过调用chatModel的call方法，传入一个提示（Prompt），来发起一次聊天交互。
-     * 主要用于在人机对话系统中，根据用户的输入生成相应的回复。
-     *
-     * @param prompt 用户的输入或者对话系统的提示信息，用于引导聊天模型生成响应。
-     * @return ChatResponse 聊天模型生成的响应结果，包含回复的内容以及其他可能的相关信息。
-     */
-    public ChatResponse chat(Prompt prompt) {
-        return chatModel.call(prompt);
-    }
-
-    /**
-     * 根据给定的提示和文档进行聊天响应生成。
-     * 该方法首先从提示中获取一系列消息，然后针对最后一条消息寻找相关的文档。
-     * 使用找到的文档内容和系统提示模板生成一条系统消息，并将其插入到提示序列的开头。
-     * 最后，使用更新后的提示序列调用聊天模型以生成聊天响应。
-     *
-     * @param prompt               用户的提示，包含一系列消息。
-     * @param systemPromptTemplate 系统提示的模板，用于生成系统消息。
-     * @return 生成的聊天响应。
-     */
-    public ChatResponse chatWithDocument(Prompt prompt, String systemPromptTemplate) {
-        // 从用户的提示中获取消息列表。
-        List<Message> messageList = prompt.getInstructions();
-        // 获取消息列表中的最后一条消息的内容。
-        String lastMessage = messageList.get(messageList.size() - 1).getContent();
-        // 根据最后一条消息的内容，在向量存储中寻找相似的文档。
-        List<Document> documentList = vectorStore.similaritySearch(lastMessage);
-        if (!documentList.isEmpty()) {
-            // 将找到的文档内容合并为一个字符串。
-            String documents = documentList.stream().map(Document::getContent).collect(Collectors.joining());
-            // 使用系统提示模板和文档内容生成一条系统消息。
-            Message systemMessage = new SystemPromptTemplate(systemPromptTemplate).createMessage(Map.of("documents", documents, "message", lastMessage));
-            // 将系统消息插入到提示序列的开头。
-            prompt.getInstructions().add(0, systemMessage);
-        }
-        // 使用更新后的提示序列调用聊天模型以生成聊天响应。
-        return chatModel.call(prompt);
+    public ChatResponse chat(ChatRecord chatRecord) {
+        // @formatter:off
+        return chatClient
+                .prompt()
+                .user(chatRecord.message())
+                .advisors(a -> a.param(AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY, chatRecord.conversationId()))
+//                .advisors(a -> a.param(QuestionAnswerAdvisor.FILTER_EXPRESSION, chatRecord.message()))
+                .call()
+                .chatResponse();
+        // @formatter:on
     }
 
     /**

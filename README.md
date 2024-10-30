@@ -33,7 +33,7 @@
 <dependency>
     <groupId>com.github.wb04307201</groupId>
     <artifactId>easy-ai-spring-boot-starter</artifactId>
-    <version>0.5.0</version>
+    <version>0.6.0</version>
 </dependency>
 ```
 
@@ -65,15 +65,15 @@ spring:
           model: qwen2
       embedding:
         options:
-          model: llama3
+          model: qwen2
       base-url: "http://localhost:11434"
     vectorstore:
       chroma:
         client:
           host: http://localhost
           port: 8000
-        store:
-          collection-name: SpringAiCollection
+        collection-name: SpringAiCollection
+        initialize-schema: true
   servlet:
     multipart:
       max-file-size: 10MB
@@ -93,26 +93,27 @@ public class EasyAiDemoApplication {
 }
 ```
 
-### 使用大模型对话
-内置聊天界面http://ip:端口/easy/ai/chat  
-![img.png](img.png)
+### 使用检索增强生成(RAG)辅助对话
+当未上传知识库时  
+![img_4.png](img_4.png)  
+显然开始胡说八道了
 
-### 使用专家知识库的大模型对话
-内置上传界面http://ip:端口/easy/ai/list  
-![img_1.png](img_1.png)
+现在让我们上传一些知识库，访问文档上传界面http://ip:端口/easy/ai/list  
+![img.png](img.png)  
 状态列显示“向量存储完”即文档已转入知识库  
-内置聊天界面http://ip:端口/easy/ai/chat  
-![img_2.png](img_2.png)
+
+访问聊天界面http://ip:端口/easy/ai/chat  
+![img_5.png](img_5.png)
 
 ## 高级
-### 使用大模型API
+### 使用其他大模型API
 这里以[智谱AI](https://open.bigmodel.cn/)为例，如何对接大模型API  
 修改项目依赖，支持的大模型平台可到[Spring AI](https://docs.spring.io/spring-ai/reference/index.html)查看  
 ```xml
         <dependency>
             <groupId>com.gitee.wb04307201</groupId>
             <artifactId>easy-ai-spring-boot-starter</artifactId>
-            <version>0.5.0</version>
+            <version>0.6.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework.ai</groupId>

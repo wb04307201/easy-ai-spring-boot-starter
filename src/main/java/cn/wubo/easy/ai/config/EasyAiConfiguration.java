@@ -1,8 +1,8 @@
 package cn.wubo.easy.ai.config;
 
+import cn.wubo.easy.ai.core.ChatRecord;
 import cn.wubo.easy.ai.core.DocumentStorageDTO;
 import cn.wubo.easy.ai.core.EasyAiService;
-import cn.wubo.easy.ai.core.PromptRecord;
 import cn.wubo.easy.ai.document.IDocumentReaderService;
 import cn.wubo.easy.ai.document.IDocumentStorageRecord;
 import cn.wubo.easy.ai.document.IDocumentStorageService;
@@ -16,10 +16,17 @@ import cn.wubo.easy.ai.utils.FileUtils;
 import cn.wubo.easy.ai.utils.IoUtils;
 import cn.wubo.easy.ai.utils.PageUtils;
 import jakarta.servlet.http.Part;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.client.advisor.QuestionAnswerAdvisor;
+import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
+import org.springframework.ai.chat.memory.InMemoryChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.reader.ExtractedTextFormatter;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
+import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
@@ -136,6 +143,20 @@ public class EasyAiConfiguration {
         return new DocumentReaderServiceImpl(tokenTextSplitter, extractedTextFormatter);
     }
 
+    @Bean(value = "easyAiChatClient")
+    public ChatClient chatClient(ChatModel chatModel, VectorStore vectorStore) {
+        // @formatter:off
+        return ChatClient
+                .builder(chatModel)
+                .defaultAdvisors(
+                        new MessageChatMemoryAdvisor(new InMemoryChatMemory()), // CHAT MEMORY
+                        new QuestionAnswerAdvisor(vectorStore, SearchRequest.defaults()), // RAG
+                        new SimpleLoggerAdvisor()
+                )
+                .build();
+        // @formatter:on
+    }
+
     /**
      * 创建并配置EasyAiService实例。
      * 该方法通过依赖注入获得多个服务和模型的实例，从中选择特定的文件存储服务和文件存储记录实例，
@@ -145,12 +166,12 @@ public class EasyAiConfiguration {
      * @param fileStorageRecordList  文件存储记录列表，用于筛选符合特定类名的文件存储记录实例。
      * @param documentReaderService  文档阅读服务实例，用于处理文档阅读相关任务。
      * @param vectorStore            向量存储实例，用于存储和检索向量数据。
-     * @param chatModel              聊天模型实例，用于支持聊天功能。
+     * @param chatClient             聊天模型实例，用于支持聊天功能。
      * @return 配置完成的EasyAiService实例。
      * @throws EasyAiRuntimeException 如果无法找到配置的文件存储服务或文件存储记录对应的Bean，则抛出此异常。
      */
     @Bean
-    public EasyAiService easyAiService(List<IDocumentStorageService> fileStorageServiceList, List<IDocumentStorageRecord> fileStorageRecordList, IDocumentReaderService documentReaderService, VectorStore vectorStore, ChatModel chatModel) {
+    public EasyAiService easyAiService(List<IDocumentStorageService> fileStorageServiceList, List<IDocumentStorageRecord> fileStorageRecordList, IDocumentReaderService documentReaderService, VectorStore vectorStore, @Qualifier(value = "easyAiChatClient") ChatClient chatClient) {
         // 从文件存储服务列表中筛选出符合配置类名的服务实例，并初始化它。
         // @formatter:off
         IDocumentStorageService fileStorageService = fileStorageServiceList.stream()
@@ -168,7 +189,7 @@ public class EasyAiConfiguration {
         // @formatter:on
 
         // 使用筛选并初始化的服务和模型实例创建EasyAiService对象。
-        return new EasyAiService(fileStorageService, fileStorageRecord, documentReaderService, vectorStore, chatModel);
+        return new EasyAiService(fileStorageService, fileStorageRecord, documentReaderService, vectorStore, chatClient);
     }
 
 
@@ -227,8 +248,7 @@ public class EasyAiConfiguration {
                         });
                 // @formatter:on
             });
-            builder.POST("/easy/ai/chat", request -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(Result.success(easyAiService.chat(request.body(PromptRecord.class).getPromptMessages()))));
-            builder.POST("/easy/ai/chatWithDocument", request -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(Result.success(easyAiService.chatWithDocument(request.body(PromptRecord.class).getPromptMessages(), properties.getSystemPromptTemplate()))));
+            builder.POST("/easy/ai/chat", request -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(Result.success(easyAiService.chat(request.body(ChatRecord.class)))));
         }
         return builder.build();
     }

@@ -5,8 +5,8 @@
     <meta name="renderer" content="webkit">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="${contextPath}/easy/ai/static/layui/2.9.6/css/layui.css"/>
-    <script type="text/javascript" src="${contextPath}/easy/ai/static/layui/2.9.6/layui.js"></script>
+    <link rel="stylesheet" type="text/css" href="${contextPath}/easy/ai/static/layui/2.9.18/css/layui.css"/>
+    <script type="text/javascript" src="${contextPath}/easy/ai/static/layui/2.9.18/layui.js"></script>
     <style>
         body {
             padding: 10px 20px 10px 20px;
@@ -55,23 +55,6 @@
 </div>
 <!-- 原始容器 -->
 <table class="layui-hide" id="table"></table>
-<!-- 状态列 -->
-<script type="text/html" id="table-templet-state">
-    <div class="layui-clear-space">
-        <!-- 00 上传 10 文档拆分中 20 文档拆分完 30 向量存储中 40 向量存储完 -->
-        {{#  if(d.status == '00'){ }}
-        上传
-        {{#  } else if(d.state = '10') { }}
-        文档拆分中
-        {{#  } else if(d.state = '20') { }}
-        文档拆分完
-        {{#  } else if(d.state = '30') { }}
-        向量存储中
-        {{#  } else if(d.state = '40') { }}
-        向量存储完
-        {{#  } }}
-    </div>
-</script>
 <!-- 操作列 -->
 <script type="text/html" id="table-templet-operator">
     <div class="layui-clear-space">
@@ -112,7 +95,24 @@
                 {field: 'id', title: 'ID', width: 150, fixed: 'left', hide: true},
                 {field: 'fileName', title: '文件名', width: 300},
                 {field: 'filePath', title: '文件位置', width: 350},
-                {field: 'state', title: '状态', width: 150, templet: '#table-templet-state'},
+                {
+                    field: 'state', title: '状态', width: 150, templet: function (d) {
+                        // 00 上传 10 文档拆分中 20 文档拆分完 30 向量存储中 40 向量存储完
+                        if (d.state === '00') {
+                            return '上传';
+                        } else if (d.state === '10') {
+                            return '文档拆分中';
+                        } else if (d.state === '20') {
+                            return '文档拆分完';
+                        } else if (d.state === '30') {
+                            return '向量存储中';
+                        } else if (d.state === '40') {
+                            return '向量存储完';
+                        } else {
+                            return d.state;
+                        }
+                    }
+                },
                 {field: 'operator', title: '操作', width: 200, fixed: 'right', templet: '#table-templet-operator'},
             ]],
             url: '${contextPath}/easy/ai/list',
