@@ -15,16 +15,13 @@
     <div class="input-area">
         <textarea name="text" id="textarea"></textarea>
         <div class="button-area">
-            <div>
-                <input type="checkbox" id="with-document" name="with-document" checked/>
-                <label for="with-document">启用知识库</label>
-            </div>
             <button id="send-btn" onclick="send()">发 送</button>
         </div>
     </div>
 </div>
 <script>
-    const messages = []
+    const conversationId = Math.random().toString(12);
+    let timer;
 
     document.onkeyup = function (e) {
         if (window.event)//如果window.event对象存在，就以此事件对象为准
@@ -38,7 +35,6 @@
 
     function send() {
         let textarea = document.getElementById('textarea');
-        let withDocument = document.getElementById("with-document")
         let sendBtn = document.getElementById("send-btn")
         let text = textarea.value;
         if (!text) {
@@ -53,22 +49,22 @@
         document.querySelector('.content').appendChild(userItem);
 
         //滚动条置底
-        let height = document.querySelector('.content').scrollHeight;
-        document.querySelector(".content").scrollTop = height;
+        document.querySelector(".content").scrollTop = document.querySelector('.content').scrollHeight;
 
         //清空并禁止输入
         textarea.value = '';
         textarea.disabled = true;
-        withDocument.disabled = true;
         sendBtn.disabled = true;
 
-        const newMessages = JSON.parse(JSON.stringify(messages));
-        newMessages.push({messageType: 'user', textContent: text});
+        sendBtn.textContent = '正在发送...';
+        /*timer = setInterval(() => {
 
-        fetch(withDocument.checked ? '${contextPath}/easy/ai/chatWithDocument' : '${contextPath}/easy/ai/chat', {
+        },1000)*/
+
+        fetch('${contextPath}/easy/ai/chat', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({messages: newMessages}),
+            body: JSON.stringify({message: text, conversationId: conversationId}),
         })
             .then(response => {
                 if (!response.ok) {
@@ -79,9 +75,7 @@
             .then(data => {
                 console.log(data); // 处理返回的数据
                 if (data.code === 200) {
-                    messages.push({messageType: 'user', textContent: text})
                     const assistantTextContent = data.data.result.output.content
-                    messages.push({messageType: 'assistant', textContent: assistantTextContent})
 
                     // assistant
                     let assistantItem = document.createElement('div');
@@ -90,25 +84,21 @@
                     document.querySelector('.content').appendChild(assistantItem);
 
                     //滚动条置底
-                    let height = document.querySelector('.content').scrollHeight;
-                    document.querySelector(".content").scrollTop = height;
+                    document.querySelector(".content").scrollTop = document.querySelector('.content').scrollHeight;
 
                     //允许输入并指向
-                    textarea.disabled = false;
-                    withDocument.disabled = false;
-                    sendBtn.disabled = false;
                     textarea.focus();
                 } else {
-                    textarea.disabled = false;
-                    withDocument.disabled = false;
-                    sendBtn.disabled = false;
                     console.error(data.message);
                 }
+                textarea.disabled = false;
+                sendBtn.disabled = false;
+                sendBtn.textContent = '发 送';
             })
             .catch(error => {
                 textarea.disabled = false;
-                withDocument.disabled = false;
                 sendBtn.disabled = false;
+                sendBtn.textContent = '发 送';
                 console.error('There has been a problem with your fetch operation:', error);
             });
     }

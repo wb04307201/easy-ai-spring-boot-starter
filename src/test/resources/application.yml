@@ -5,18 +5,18 @@ spring:
     ollama:
       chat:
         options:
-          model: llama3
+          model: qwen2
       embedding:
         options:
-          model: llama3
+          model: qwen2
       base-url: "http://localhost:11434"
     vectorstore:
       chroma:
         client:
           host: http://localhost
           port: 8000
-        store:
-          collection-name: SpringAiCollection
+        collection-name: SpringAiCollection
+        initialize-schema: true
 
 logging:
   level:

@@ -148,7 +148,6 @@ public class EasyAiConfiguration {
         // @formatter:off
         return ChatClient
                 .builder(chatModel)
-                .defaultSystem("")
                 .defaultAdvisors(
                         new MessageChatMemoryAdvisor(new InMemoryChatMemory()), // CHAT MEMORY
                         new QuestionAnswerAdvisor(vectorStore, SearchRequest.defaults()), // RAG

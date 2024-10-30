@@ -117,9 +117,8 @@ public class EasyAiService {
         return chatClient
                 .prompt()
                 .user(chatRecord.message())
-                .system("")
                 .advisors(a -> a.param(AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY, chatRecord.conversationId()))
-                .advisors(a -> a.param(QuestionAnswerAdvisor.FILTER_EXPRESSION, chatRecord.message()))
+//                .advisors(a -> a.param(QuestionAnswerAdvisor.FILTER_EXPRESSION, chatRecord.message()))
                 .call()
                 .chatResponse();
         // @formatter:on
