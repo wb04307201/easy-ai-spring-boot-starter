@@ -61,7 +61,7 @@
 
         },1000)*/
 
-        fetch('${contextPath}/easy/ai/chat', {
+        fetch('${contextPath}/easy/ai/chat/stream', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({message: text, conversationId: conversationId}),
@@ -70,30 +70,44 @@
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
-                return response.json(); // 解析 JSON 数据
+                return response.body;
             })
-            .then(data => {
-                console.log(data); // 处理返回的数据
-                if (data.code === 200) {
-                    const assistantTextContent = data.data.result.output.content
+            .then(body => {
+                const reader = body.getReader();
+                const id = Date.now();
 
-                    // assistant
-                    let assistantItem = document.createElement('div');
-                    assistantItem.className = 'item item-left';
-                    assistantItem.innerHTML = `<div class="avatar"><img src="${contextPath}/easy/ai/static/assets/ai.png"/></div><div class="bubble bubble-left">` + assistantTextContent + `</div>`;
-                    document.querySelector('.content').appendChild(assistantItem);
+                let assistantItem = document.createElement('div');
+                assistantItem.className = 'item item-left';
+                assistantItem.innerHTML = `<div class="avatar"><img src="${contextPath}/easy/ai/static/assets/ai.png"/></div><div class="bubble bubble-left" id="` + id + `"></div>`;
+                document.querySelector('.content').appendChild(assistantItem);
 
-                    //滚动条置底
-                    document.querySelector(".content").scrollTop = document.querySelector('.content').scrollHeight;
+                let answerTextContent = document.getElementById(id)
 
-                    //允许输入并指向
-                    textarea.focus();
-                } else {
-                    console.error(data.message);
+                // 读取数据流
+                function read() {
+                    return reader.read().then(({done, value}) => {
+                        // 检查是否读取完毕
+                        if (done) {
+                            // console.log('已传输完毕');
+                            textarea.focus();
+                            textarea.disabled = false;
+                            sendBtn.disabled = false;
+                            sendBtn.textContent = '发 送';
+                            return;
+                        }
+                        // 处理每个数据块
+                        let context = new TextDecoder('utf-8').decode(value);
+                        // console.log('收到的数据:', context);
+
+                        answerTextContent.textContent = answerTextContent.textContent + context;
+
+                        // 继续读取下一个数据块
+                        read();
+                    });
                 }
-                textarea.disabled = false;
-                sendBtn.disabled = false;
-                sendBtn.textContent = '发 送';
+
+                // 开始读取数据流
+                read();
             })
             .catch(error => {
                 textarea.disabled = false;
