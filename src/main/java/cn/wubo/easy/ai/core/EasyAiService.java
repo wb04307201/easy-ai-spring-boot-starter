@@ -9,6 +9,7 @@ import org.springframework.ai.chat.client.advisor.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
+import reactor.core.publisher.Flux;
 
 import java.io.InputStream;
 import java.util.Date;
@@ -121,6 +122,18 @@ public class EasyAiService {
 //                .advisors(a -> a.param(QuestionAnswerAdvisor.FILTER_EXPRESSION, chatRecord.message()))
                 .call()
                 .chatResponse();
+        // @formatter:on
+    }
+
+    public Flux<String> stream(ChatRecord chatRecord) {
+        // @formatter:off
+        return chatClient
+                .prompt()
+                .user(chatRecord.message())
+                .advisors(a -> a.param(AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY, chatRecord.conversationId()))
+//                .advisors(a -> a.param(QuestionAnswerAdvisor.FILTER_EXPRESSION, chatRecord.message()))
+                .stream()
+                .content();
         // @formatter:on
     }
 

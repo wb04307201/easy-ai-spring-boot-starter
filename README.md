@@ -33,7 +33,7 @@
 <dependency>
     <groupId>com.github.wb04307201</groupId>
     <artifactId>easy-ai-spring-boot-starter</artifactId>
-    <version>0.6.0</version>
+    <version>0.6.1</version>
 </dependency>
 ```
 
