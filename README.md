@@ -33,7 +33,7 @@
 <dependency>
     <groupId>com.github.wb04307201</groupId>
     <artifactId>easy-ai-spring-boot-starter</artifactId>
-    <version>0.6.0</version>
+    <version>0.6.1</version>
 </dependency>
 ```
 
@@ -113,7 +113,7 @@ public class EasyAiDemoApplication {
         <dependency>
             <groupId>com.gitee.wb04307201</groupId>
             <artifactId>easy-ai-spring-boot-starter</artifactId>
-            <version>0.6.0</version>
+            <version>0.6.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework.ai</groupId>

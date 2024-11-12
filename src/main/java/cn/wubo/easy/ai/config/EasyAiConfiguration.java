@@ -148,6 +148,7 @@ public class EasyAiConfiguration {
         // @formatter:off
         return ChatClient
                 .builder(chatModel)
+                .defaultSystem(properties.getDefaultSystem())
                 .defaultAdvisors(
                         new MessageChatMemoryAdvisor(new InMemoryChatMemory()), // CHAT MEMORY
                         new QuestionAnswerAdvisor(vectorStore, SearchRequest.defaults()), // RAG
@@ -249,6 +250,7 @@ public class EasyAiConfiguration {
                 // @formatter:on
             });
             builder.POST("/easy/ai/chat", request -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(Result.success(easyAiService.chat(request.body(ChatRecord.class)))));
+            builder.POST("/easy/ai/chat/stream", request -> ServerResponse.ok().contentType(MediaType.TEXT_EVENT_STREAM).body(easyAiService.stream(request.body(ChatRecord.class))));
         }
         return builder.build();
     }

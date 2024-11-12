@@ -17,6 +17,7 @@ import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.boot.autoconfigure.web.client.RestClientAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+import reactor.core.publisher.Flux;
 
 @Slf4j
 @RunWith(SpringRunner.class)
@@ -35,9 +36,16 @@ class EasyAiServiceTest {
     }
 
     @Test
-    void testEasyAiService() {
+    void testChat() {
         ChatRecord chatRecord = new ChatRecord("你好", RandomStringUtils.random(5));
         ChatResponse chatResponse = easyAiService.chat(chatRecord);
         log.debug(chatResponse.getResult().getOutput().toString());
+    }
+
+    @Test
+    void testStream() {
+        ChatRecord chatRecord = new ChatRecord("你好", RandomStringUtils.random(5));
+        Flux<String> strs = easyAiService.stream(chatRecord);
+        strs.collectList().block().stream().forEach(log::debug);
     }
 }
