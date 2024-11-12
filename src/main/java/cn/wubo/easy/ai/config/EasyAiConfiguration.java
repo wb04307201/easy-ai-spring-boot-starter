@@ -107,7 +107,15 @@ public class EasyAiConfiguration {
     @Bean
     public TokenTextSplitter tokenTextSplitter(SplitterProperties properties) {
         // 使用配置属性初始化TokenTextSplitter实例
-        return new TokenTextSplitter(properties.getDefaultChunkSize(), properties.getMinChunkSizeChars(), properties.getMinChunkLengthToEmbed(), properties.getMaxNumChunks(), properties.isKeepSeparator());
+        // @formatter:off
+        return new TokenTextSplitter(
+                properties.getDefaultChunkSize(),
+                properties.getMinChunkSizeChars(),
+                properties.getMinChunkLengthToEmbed(),
+                properties.getMaxNumChunks(),
+                properties.isKeepSeparator()
+        );
+        // @formatter:on
     }
 
     /**
@@ -145,17 +153,12 @@ public class EasyAiConfiguration {
 
     @Bean(value = "easyAiChatClient")
     public ChatClient chatClient(ChatModel chatModel, VectorStore vectorStore) {
-        // @formatter:off
-        return ChatClient
-                .builder(chatModel)
-                .defaultSystem(properties.getDefaultSystem())
-                .defaultAdvisors(
-                        new MessageChatMemoryAdvisor(new InMemoryChatMemory()), // CHAT MEMORY
-                        new QuestionAnswerAdvisor(vectorStore, SearchRequest.defaults()), // RAG
-                        new SimpleLoggerAdvisor()
-                )
-                .build();
-        // @formatter:on
+        ChatClient.Builder builder = ChatClient.builder(chatModel);
+        if (properties.getDefaultSystem() != null) builder.defaultSystem(properties.getDefaultSystem());
+        if (Boolean.TRUE.equals(properties.getEnableRag()))
+            builder.defaultAdvisors(new MessageChatMemoryAdvisor(new InMemoryChatMemory()), new QuestionAnswerAdvisor(vectorStore, SearchRequest.defaults(), properties.getUserTextAdvise()), new SimpleLoggerAdvisor());
+        else builder.defaultAdvisors(new MessageChatMemoryAdvisor(new InMemoryChatMemory()), new SimpleLoggerAdvisor());
+        return builder.build();
     }
 
     /**
@@ -214,7 +217,7 @@ public class EasyAiConfiguration {
                 return ServerResponse.ok().contentType(MediaType.TEXT_HTML).body(PageUtils.write("chat.ftl", data));
             });
         }
-        if (properties.getEnableRest()) {
+        if (Boolean.TRUE.equals(properties.getEnableRest())) {
             builder.POST("/easy/ai/list", request -> {
                 DocumentStorageDTO documentStorageDTO = request.body(DocumentStorageDTO.class);
                 return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(Result.success(easyAiService.list(documentStorageDTO)));

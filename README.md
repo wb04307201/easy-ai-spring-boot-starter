@@ -33,7 +33,7 @@
 <dependency>
     <groupId>com.github.wb04307201</groupId>
     <artifactId>easy-ai-spring-boot-starter</artifactId>
-    <version>0.6.1</version>
+    <version>0.6.2</version>
 </dependency>
 ```
 
@@ -46,8 +46,6 @@ docker run -d --name chromadb -p 8000:8000 chromadb/chroma
 ### 安装大语言模型
 默认通过[ollama](https://ollama.com/)使用大模型，下载并安装
 ```shell
-# 拉取llama3模型
-ollama pull llama3
 # 拉取qwen2模型
 ollama pull qwen2
 ```
@@ -74,6 +72,14 @@ spring:
           port: 8000
         collection-name: SpringAiCollection
         initialize-schema: true
+    easy:
+      defaultSystem:
+      enableRag: true
+      userTextAdvise: \n上下文信息如下，用---------------------包围\n\n---------------------\n{question_answer_context}\n---------------------\n\n基于上下文和提供的历史信息（而非先验知识），回复用户评论。如果答案不在上下文中，请告知用户无法回答这个问题。\n
+      fileStorageServiceClass: cn.wubo.easy.ai.document.impl.LocalDocumentStorageServiceImpl
+      fileStorageRecordClass: cn.wubo.easy.ai.document.impl.MemDocumentStorageRecordImpl
+      enableWeb: true
+      enableRest: true
   servlet:
     multipart:
       max-file-size: 10MB
@@ -113,7 +119,7 @@ public class EasyAiDemoApplication {
         <dependency>
             <groupId>com.gitee.wb04307201</groupId>
             <artifactId>easy-ai-spring-boot-starter</artifactId>
-            <version>0.6.1</version>
+            <version>0.6.2</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework.ai</groupId>
