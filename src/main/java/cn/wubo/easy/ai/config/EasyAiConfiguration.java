@@ -156,7 +156,7 @@ public class EasyAiConfiguration {
         ChatClient.Builder builder = ChatClient.builder(chatModel);
         if (properties.getDefaultSystem() != null) builder.defaultSystem(properties.getDefaultSystem());
         if (Boolean.TRUE.equals(properties.getEnableRag()))
-            builder.defaultAdvisors(new MessageChatMemoryAdvisor(new InMemoryChatMemory()), new QuestionAnswerAdvisor(vectorStore, SearchRequest.defaults(), properties.getUserTextAdvise()), new SimpleLoggerAdvisor());
+            builder.defaultAdvisors(new MessageChatMemoryAdvisor(new InMemoryChatMemory()), new QuestionAnswerAdvisor(vectorStore, SearchRequest.builder().build(), properties.getUserTextAdvise()), new SimpleLoggerAdvisor());
         else builder.defaultAdvisors(new MessageChatMemoryAdvisor(new InMemoryChatMemory()), new SimpleLoggerAdvisor());
         return builder.build();
     }
