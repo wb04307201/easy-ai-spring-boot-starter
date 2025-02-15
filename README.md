@@ -33,7 +33,7 @@
 <dependency>
     <groupId>com.github.wb04307201</groupId>
     <artifactId>easy-ai-spring-boot-starter</artifactId>
-    <version>0.6.2</version>
+    <version>0.6.3</version>
 </dependency>
 ```
 
@@ -48,6 +48,8 @@ docker run -d --name chromadb -p 8000:8000 chromadb/chroma
 ```shell
 # 拉取qwen2模型
 ollama pull qwen2
+# 拉取deepseek-r1模型
+ollama pull deepseek-r1
 ```
 
 ### 添加相关配置
@@ -60,10 +62,15 @@ spring:
       chat:
         options:
           #  model: llama3
-          model: qwen2
+#          model: qwen2/
+          model: deepseek-r1
       embedding:
         options:
           model: qwen2
+      init:
+        pull-model-strategy: always
+        timeout: 60s
+        max-retries: 1
       base-url: "http://localhost:11434"
     vectorstore:
       chroma:
