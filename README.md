@@ -1,21 +1,21 @@
-# easy-ai-spring-boot-starter
-# 易智Spring
+# Easy AI 简单易用的AI功能集成
 
-[![](https://jitpack.io/v/com.gitee.wb04307201/easy-ai-spring-boot-starter.svg)](https://jitpack.io/#com.gitee.wb04307201/easy-ai-spring-boot-starter)
-[![star](https://gitee.com/wb04307201/easy-ai-spring-boot-starter/badge/star.svg?theme=dark)](https://gitee.com/wb04307201/easy-ai-spring-boot-starter)
-[![fork](https://gitee.com/wb04307201/easy-ai-spring-boot-starter/badge/fork.svg?theme=dark)](https://gitee.com/wb04307201/easy-ai-spring-boot-starter)
-[![star](https://img.shields.io/github/stars/wb04307201/easy-ai-spring-boot-starter)](https://github.com/wb04307201/easy-ai-spring-boot-starter)
-[![fork](https://img.shields.io/github/forks/wb04307201/easy-ai-spring-boot-starter)](https://github.com/wb04307201/easy-ai-spring-boot-starter)  
+> 一个用于简化Spring Boot应用程序中AI功能集成的starter包，支持聊天功能和文档处理（RAG - 检索增强生成）。
+
+[![](https://jitpack.io/v/com.gitee.wb04307201/easy-ai.svg)](https://jitpack.io/#com.gitee.wb04307201/easy-ai)
+[![star](https://gitee.com/wb04307201/easy-ai/badge/star.svg?theme=dark)](https://gitee.com/wb04307201/easy-ai)
+[![fork](https://gitee.com/wb04307201/easy-ai/badge/fork.svg?theme=dark)](https://gitee.com/wb04307201/easy-ai)
+[![star](https://img.shields.io/github/stars/wb04307201/easy-ai)](https://github.com/wb04307201/easy-ai)
+[![fork](https://img.shields.io/github/forks/wb04307201/easy-ai)](https://github.com/wb04307201/easy-ai)  
 ![MIT](https://img.shields.io/badge/License-Apache2.0-blue.svg) ![JDK](https://img.shields.io/badge/JDK-17+-green.svg) ![SpringBoot](https://img.shields.io/badge/Srping%20Boot-3+-green.svg)
 
-> 这不是一个AI大模型，但是可以帮你快速集成AI大模型到Spring项目中，  
-> 并通过“检索增强生成(RAG)”的方式建立专家知识库帮助大模型回答问题。  
-> 
-> 核心功能依赖于[Spring AI](https://docs.spring.io/spring-ai/reference/index.html)实现，RAG运行原理如下  
-> ![img_3.png](img_3.png)
+## 功能特性
 
-## 代码示例
-1. 使用[易智Spring](https://gitee.com/wb04307201/easy-ai-spring-boot-starter)实现的[AI大模型Demo](https://gitee.com/wb04307201/easy-ai-demo)
+- 🤖 AI聊天功能：支持普通聊天和流式聊天
+- 📄 文档处理：支持文档上传、存储、读取和检索
+- 🧠 RAG支持：基于向量存储的检索增强生成
+- ⚙️ 自动配置：通过Spring Boot自动配置简化集成
+- 🎛️ 可配置：丰富的配置选项，满足不同场景需求
 
 ## 快速开始
 ### 引入依赖
@@ -31,25 +31,23 @@
 引入jar
 ```xml
 <dependency>
-    <groupId>com.github.wb04307201</groupId>
+    <groupId>com.github.wb04307201.easy-ai</groupId>
     <artifactId>easy-ai-spring-boot-starter</artifactId>
-    <version>0.6.3</version>
+    <version>1.0.1</version>
 </dependency>
 ```
 
 ### 安装向量数据库
 通过docker安装chromadb数据库
 ```shell
-docker run -d --name chromadb -p 8000:8000 chromadb/chroma
+docker run -it --rm --name chroma -p 8000:8000 ghcr.io/chroma-core/chroma:1.0.0
 ```
 
 ### 安装大语言模型
 默认通过[ollama](https://ollama.com/)使用大模型，下载并安装
 ```shell
-# 拉取qwen2模型
-ollama pull qwen2
-# 拉取deepseek-r1模型
-ollama pull deepseek-r1
+ollama pull qwen3
+ollama pull nomic-embed-text
 ```
 
 ### 添加相关配置
@@ -61,17 +59,11 @@ spring:
     ollama:
       chat:
         options:
-          #  model: llama3
-#          model: qwen2/
-          model: deepseek-r1
+          model: qwen3
       embedding:
         options:
-          model: qwen2
-      init:
-        pull-model-strategy: always
-        timeout: 60s
-        max-retries: 1
-      base-url: "http://localhost:11434"
+          model: nomic-embed-text
+      base-url: http://localhost:11434
     vectorstore:
       chroma:
         client:
@@ -80,30 +72,11 @@ spring:
         collection-name: SpringAiCollection
         initialize-schema: true
     easy:
-      defaultSystem:
       enableRag: true
-      userTextAdvise: \n上下文信息如下，用---------------------包围\n\n---------------------\n{question_answer_context}\n---------------------\n\n基于上下文和提供的历史信息（而非先验知识），回复用户评论。如果答案不在上下文中，请告知用户无法回答这个问题。\n
-      fileStorageServiceClass: cn.wubo.easy.ai.document.impl.LocalDocumentStorageServiceImpl
-      fileStorageRecordClass: cn.wubo.easy.ai.document.impl.MemDocumentStorageRecordImpl
-      enableWeb: true
-      enableRest: true
   servlet:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
-```
-
-### 在启动类上加上`@EnableEasyAi`注解
-```java
-@EnableEasyAi
-@SpringBootApplication
-public class EasyAiDemoApplication {
-
-    public static void main(String[] args) {
-        SpringApplication.run(EasyAiDemoApplication.class, args);
-    }
-
-}
 ```
 
 ### 使用检索增强生成(RAG)辅助对话
@@ -111,40 +84,9 @@ public class EasyAiDemoApplication {
 ![img_4.png](img_4.png)  
 显然开始胡说八道了
 
-现在让我们上传一些知识库，访问文档上传界面http://ip:端口/easy/ai/list  
+现在让我们上传一些知识库，访问文档上传界面[http://localhost:8080//easy/ai/list](http://localhost:8080//easy/ai/list)  
 ![img.png](img.png)  
 状态列显示“向量存储完”即文档已转入知识库  
 
-访问聊天界面http://ip:端口/easy/ai/chat  
+访问聊天界面[http://localhost:8080//easy/ai/chat](http://localhost:8080//easy/ai/chat)  
 ![img_5.png](img_5.png)
-
-## 高级
-### 使用其他大模型API
-这里以[智谱AI](https://open.bigmodel.cn/)为例，如何对接大模型API  
-修改项目依赖，支持的大模型平台可到[Spring AI](https://docs.spring.io/spring-ai/reference/index.html)查看  
-```xml
-        <dependency>
-            <groupId>com.gitee.wb04307201</groupId>
-            <artifactId>easy-ai-spring-boot-starter</artifactId>
-            <version>0.6.2</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.ai</groupId>
-                    <artifactId>spring-ai-ollama-spring-boot-starter</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-zhipuai-spring-boot-starter</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
-        </dependency>
-```
-修改配置项目
-```yaml
-spring:
-  ai:
-    zhipuai:
-      api-key: 智谱AI API Key
-```
-> 除了大模型API外，向量数据库也可以参照上面的方式进行替换
